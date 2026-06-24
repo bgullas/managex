@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ManAgeX — Managing Access Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --mx-black: #0D0F12;
+  --mx-charcoal: #1A1D23;
+  --mx-panel: #22262E;
+  --mx-border: #2E3340;
+  --mx-border-light: #3A3F4E;
+  --mx-muted: #5A6070;
+  --mx-secondary: #8B93A5;
+  --mx-text: #E8ECF4;
+  --mx-white: #F4F7FF;
+  --mx-teal: #00C9A7;
+  --mx-teal-dim: #00C9A720;
+  --mx-teal-mid: #00C9A740;
+  --mx-blue: #4D90FE;
+  --mx-blue-dim: #4D90FE20;
+  --mx-amber: #F5A623;
+  --mx-amber-dim: #F5A62320;
+  --mx-red: #E8455A;
+  --mx-red-dim: #E8455A20;
+  --mx-green: #34C759;
+  --mx-green-dim: #34C75920;
+  --mx-purple: #A78BFA;
+  --mx-purple-dim: #A78BFA20;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --font-main: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--mx-black);
+  color: var(--mx-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── Layout ── */
+.shell { display: flex; height: 100vh; }
+
+.sidebar {
+  width: 230px;
+  min-width: 230px;
+  background: var(--mx-charcoal);
+  border-right: 1px solid var(--mx-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.logo-bar {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--mx-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--mx-teal), #00956E);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-icon i { font-size: 18px; color: #fff; }
+
+.logo-text { line-height: 1.2; }
+.logo-name { font-size: 16px; font-weight: 600; color: var(--mx-white); letter-spacing: -.3px; }
+.logo-sub { font-size: 10px; color: var(--mx-muted); text-transform: uppercase; letter-spacing: .1em; }
+
+.nav-wrap { flex: 1; overflow-y: auto; padding: 10px 0; }
+.nav-wrap::-webkit-scrollbar { width: 3px; }
+.nav-wrap::-webkit-scrollbar-thumb { background: var(--mx-border); }
+
+.nav-group { margin-bottom: 4px; }
+.nav-group-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--mx-muted);
+  padding: 10px 18px 4px;
+  font-weight: 600;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  margin: 1px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--mx-secondary);
+  transition: all .15s;
+  position: relative;
+}
+.nav-item:hover { background: var(--mx-panel); color: var(--mx-text); }
+.nav-item.active {
+  background: var(--mx-teal-dim);
+  color: var(--mx-teal);
+  font-weight: 500;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 16px;
+  background: var(--mx-teal);
+  border-radius: 0 2px 2px 0;
+}
+.nav-item i { font-size: 16px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--mx-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.nav-badge-amber {
+  background: var(--mx-amber);
+  color: #fff;
+}
+
+.sidebar-footer {
+  border-top: 1px solid var(--mx-border);
+  padding: 10px 8px;
+}
+
+.property-selector {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin: 0 6px 6px;
+  transition: border-color .15s;
+}
+.property-selector:hover { border-color: var(--mx-teal); }
+.prop-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mx-teal); flex-shrink: 0; }
+.prop-name { font-size: 12px; font-weight: 500; color: var(--mx-text); flex: 1; }
+.prop-units { font-size: 10px; color: var(--mx-muted); }
+
+/* ── Main area ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.topbar {
+  height: 54px;
+  background: var(--mx-charcoal);
+  border-bottom: 1px solid var(--mx-border);
+  display: flex; align-items: center; padding: 0 24px;
+  gap: 12px; flex-shrink: 0;
+}
+
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--mx-white); flex: 1; }
+.topbar-breadcrumb { font-size: 11px; color: var(--mx-muted); margin-top: 1px; }
+
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--mx-green-dim);
+  border: 1px solid var(--mx-green)30;
+  color: var(--mx-green);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mx-green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.avatar-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--mx-teal), var(--mx-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: #fff;
+  cursor: pointer;
+}
+
+.notif-btn {
+  width: 34px; height: 34px;
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--mx-secondary);
+  position: relative;
+  transition: all .15s;
+}
+.notif-btn:hover { color: var(--mx-text); border-color: var(--mx-border-light); }
+.notif-dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--mx-red);
+}
+
+.content-area { flex: 1; overflow-y: auto; padding: 22px 26px; }
+.content-area::-webkit-scrollbar { width: 4px; }
+.content-area::-webkit-scrollbar-thumb { background: var(--mx-border); border-radius: 2px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Components ── */
+.card {
+  background: var(--mx-charcoal);
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.card-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--mx-white);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-title i { font-size: 15px; color: var(--mx-teal); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+.kpi {
+  background: var(--mx-panel);
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.kpi-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--mx-muted); margin-bottom: 8px; }
+.kpi-value { font-size: 24px; font-weight: 600; color: var(--mx-white); line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--mx-secondary); margin-top: 6px; }
+.kpi-delta { font-size: 11px; margin-top:4px; }
+.kpi-delta.up { color: var(--mx-teal); }
+.kpi-delta.down { color: var(--mx-red); }
+
+/* table */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; padding: 8px 12px;
+  font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--mx-muted);
+  border-bottom: 1px solid var(--mx-border);
+}
+td { padding: 11px 12px; border-bottom: 1px solid var(--mx-border)80; font-size: 13px; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .1s; }
+tbody tr:hover td { background: var(--mx-panel); }
+
+/* badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+}
+.b-green { background: var(--mx-green-dim); color: var(--mx-green); }
+.b-red { background: var(--mx-red-dim); color: var(--mx-red); }
+.b-amber { background: var(--mx-amber-dim); color: var(--mx-amber); }
+.b-blue { background: var(--mx-blue-dim); color: var(--mx-blue); }
+.b-teal { background: var(--mx-teal-dim); color: var(--mx-teal); }
+.b-purple { background: var(--mx-purple-dim); color: var(--mx-purple); }
+.b-gray { background: #ffffff10; color: var(--mx-secondary); }
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--mx-border-light);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--mx-secondary);
+  font-size: 12.5px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+  font-family: var(--font-main);
+}
+.btn:hover { background: var(--mx-panel); color: var(--mx-text); border-color: var(--mx-border-light); }
+.btn-primary {
+  background: var(--mx-teal);
+  border-color: var(--mx-teal);
+  color: #fff;
+}
+.btn-primary:hover { background: #00b394; border-color: #00b394; color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 11.5px; }
+.btn-danger { border-color: var(--mx-red)40; color: var(--mx-red); }
+.btn-danger:hover { background: var(--mx-red-dim); }
+.btn-success { border-color: var(--mx-green)40; color: var(--mx-green); }
+.btn-success:hover { background: var(--mx-green-dim); }
+
+/* inputs */
+.inp {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--mx-panel);
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-sm);
+  color: var(--mx-text);
+  font-size: 13px;
+  font-family: var(--font-main);
+  transition: border-color .15s;
+}
+.inp:focus { outline: none; border-color: var(--mx-teal); }
+.inp::placeholder { color: var(--mx-muted); }
+select.inp { cursor: pointer; }
+.form-row { margin-bottom: 12px; }
+.form-label { font-size: 11px; color: var(--mx-secondary); margin-bottom: 5px; display: block; font-weight: 500; }
+
+/* tabs */
+.tab-bar {
+  display: flex; gap: 2px;
+  border-bottom: 1px solid var(--mx-border);
+  margin-bottom: 18px;
+}
+.tab {
+  padding: 8px 16px;
+  font-size: 12.5px; cursor: pointer;
+  color: var(--mx-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.tab:hover { color: var(--mx-text); }
+.tab.active { color: var(--mx-teal); border-bottom-color: var(--mx-teal); font-weight: 500; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* misc */
+.divider { border: none; border-top: 1px solid var(--mx-border); margin: 16px 0; }
+.section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-hdr-title { font-size: 13px; font-weight: 600; color: var(--mx-white); }
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; flex-shrink: 0;
+}
+.av-t { background: var(--mx-teal-dim); color: var(--mx-teal); }
+.av-b { background: var(--mx-blue-dim); color: var(--mx-blue); }
+.av-a { background: var(--mx-amber-dim); color: var(--mx-amber); }
+.av-r { background: var(--mx-red-dim); color: var(--mx-red); }
+.av-p { background: var(--mx-purple-dim); color: var(--mx-purple); }
+.av-g { background: var(--mx-green-dim); color: var(--mx-green); }
+
+.progress-bg { height: 4px; background: var(--mx-panel); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--mx-teal); }
+.progress-fill.warn { background: var(--mx-amber); }
+.progress-fill.danger { background: var(--mx-red); }
+
+.unit-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--mx-teal-dim);
+  color: var(--mx-teal);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--mx-teal)30;
+}
+
+.access-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--mx-border)60;
+}
+.access-row:last-child { border-bottom: none; }
+.access-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.ad-green { background: var(--mx-green); }
+.ad-red { background: var(--mx-red); }
+.ad-amber { background: var(--mx-amber); }
+
+.mono { font-family: var(--font-mono); }
+.code-block {
+  background: var(--mx-black);
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--mx-secondary);
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.code-block .key { color: var(--mx-blue); }
+.code-block .str { color: var(--mx-teal); }
+.code-block .num { color: var(--mx-amber); }
+.code-block .ok { color: var(--mx-green); }
+.code-block .comment { color: var(--mx-muted); }
+
+.fee-month {
+  display: inline-block;
+  padding: 4px 9px; margin: 2px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px; font-weight: 500;
+  cursor: default;
+}
+.fm-paid { background: var(--mx-green-dim); color: var(--mx-green); border: 1px solid var(--mx-green)20; }
+.fm-unpaid { background: var(--mx-panel); color: var(--mx-muted); border: 1px solid var(--mx-border); }
+.fm-partial { background: var(--mx-amber-dim); color: var(--mx-amber); border: 1px solid var(--mx-amber)20; }
+.fm-overdue { background: var(--mx-red-dim); color: var(--mx-red); border: 1px solid var(--mx-red)20; }
+
+.pending-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  transition: border-color .15s;
+}
+.pending-item:hover { border-color: var(--mx-border-light); }
+
+.qr-preview {
+  width: 56px; height: 56px;
+  background: var(--mx-panel);
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.paynow-frame {
+  border: 1.5px solid #D4537E;
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  text-align: center;
+  max-width: 300px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.upload-zone {
+  border: 1px dashed var(--mx-border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+.upload-zone:hover { border-color: var(--mx-teal); background: var(--mx-teal-dim); }
+
+.report-card {
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.report-card:hover { border-color: var(--mx-teal); background: var(--mx-teal-dim); }
+.report-card i { font-size: 26px; }
+
+.fac-kpi {
+  background: var(--mx-panel);
+  border: 1px solid var(--mx-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-hdr { text-align: center; padding: 6px; font-size: 10.5px; color: var(--mx-muted); font-weight: 600; text-transform: uppercase; }
+.cal-day {
+  min-height: 64px; padding: 6px;
+  background: var(--mx-panel);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--mx-border);
+  font-size: 11px;
+}
+.cal-day.busy { border-color: var(--mx-teal)40; background: var(--mx-teal-dim); }
+.cal-day.full { border-color: var(--mx-amber)40; background: var(--mx-amber-dim); }
+.cal-daynum { font-weight: 600; font-size: 12px; margin-bottom: 3px; color: var(--mx-text); }
+.booking-chip {
+  font-size: 9.5px; padding: 1px 5px; border-radius: 3px;
+  margin-bottom: 2px; display: block;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bc-teal { background: var(--mx-teal-dim); color: var(--mx-teal); }
+.bc-blue { background: var(--mx-blue-dim); color: var(--mx-blue); }
+.bc-purple { background: var(--mx-purple-dim); color: var(--mx-purple); }
+.bc-amber { background: var(--mx-amber-dim); color: var(--mx-amber); }
+
+/* legend dot */
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--mx-secondary); }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* stat-row */
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--mx-border)60; }
+.stat-row:last-child { border-bottom: none; }
+
+/* inline tag for occupancy */
+.occ-bar { display: flex; align-items: center; gap: 8px; }
+
+/* ── Scrollbar global ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--mx-border); border-radius: 2px; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .grid4 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+<!-- ── Sidebar ── -->
+<nav class="sidebar" role="navigation" aria-label="Main navigation">
+  <div class="logo-bar">
+    <div class="logo-icon"><i class="ti ti-key" aria-hidden="true"></i></div>
+    <div class="logo-text">
+      <div class="logo-name">ManAgeX</div>
+      <div class="logo-sub">Managing Access</div>
+    </div>
+  </div>
+
+  <div class="property-selector" title="Switch property">
+    <span class="prop-dot"></span>
+    <div>
+      <div class="prop-name">Riviera Gardens</div>
+      <div class="prop-units">312 units · Bishan, SG</div>
+    </div>
+    <i class="ti ti-chevron-down" style="font-size:13px;color:var(--mx-muted)" aria-hidden="true"></i>
+  </div>
+
+  <div class="nav-wrap" id="nav-root"></div>
+
+  <div class="sidebar-footer">
+    <div class="nav-item" style="margin:0"><i class="ti ti-user-circle" aria-hidden="true"></i><span>Admin (MA Office)</span></div>
+    <div class="nav-item" style="margin:0" onclick="goto('settings')"><i class="ti ti-settings" aria-hidden="true"></i><span>Settings</span></div>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<div class="main">
+  <header class="topbar">
+    <div>
+      <div class="topbar-title" id="pg-title">Dashboard</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="status-pill"><span class="status-dot"></span> All systems normal</div>
+      <div class="notif-btn" title="Notifications"><i class="ti ti-bell" style="font-size:16px" aria-hidden="true"></i><span class="notif-dot"></span></div>
+      <div class="avatar-btn" title="Admin profile">MA</div>
+    </div>
+  </header>
+
+  <main class="content-area" id="content">
+
+  <!-- ════ DASHBOARD ════ -->
+  <div class="page active" id="page-dashboard">
+    <div class="grid4" style="margin-bottom:18px">
+      <div class="kpi">
+        <div class="kpi-label">Total units</div>
+        <div class="kpi-value">312</div>
+        <div class="kpi-sub">288 occupied · 24 vacant</div>
+        <div class="kpi-delta up"><i class="ti ti-trending-up" style="font-size:11px"></i> 92.3% occupancy</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Active visitors today</div>
+        <div class="kpi-value">47</div>
+        <div class="kpi-sub">34 pre-registered · 13 walk-in</div>
+        <div class="kpi-delta"><i class="ti ti-clock" style="font-size:11px;color:var(--mx-muted)"></i> <span style="color:var(--mx-secondary)">Peak 10–11am</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Fees collected (Jun)</div>
+        <div class="kpi-value">$218,400</div>
+        <div class="kpi-sub">of $231,600 expected</div>
+        <div class="kpi-delta up"><i class="ti ti-trending-up" style="font-size:11px"></i> 94.2% rate</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Facilities booked</div>
+        <div class="kpi-value">18</div>
+        <div class="kpi-sub">Today · 6 active amenities</div>
+        <div class="kpi-delta down"><i class="ti ti-alert-circle" style="font-size:11px"></i> Karaoke fully booked</div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-door-enter" aria-hidden="true"></i> Live access events</div>
+        <div class="access-row"><span class="access-dot ad-green"></span><div style="flex:1"><div>#07-22 — Visitor QR scan · Gate A</div><div style="font-size:11px;color:var(--mx-muted)">2 min ago</div></div><span class="badge b-green">Granted</span></div>
+        <div class="access-row"><span class="access-dot ad-amber"></span><div style="flex:1"><div>SJK4521T — ANPR detected · Car park</div><div style="font-size:11px;color:var(--mx-muted)">5 min ago</div></div><span class="badge b-amber">Pending</span></div>
+        <div class="access-row"><span class="access-dot ad-green"></span><div style="flex:1"><div>#12-05 — Resident card · Gate B</div><div style="font-size:11px;color:var(--mx-muted)">8 min ago</div></div><span class="badge b-green">Granted</span></div>
+        <div class="access-row"><span class="access-dot ad-red"></span><div style="flex:1"><div>SKL8812 — Unregistered plate · Car park</div><div style="font-size:11px;color:var(--mx-muted)">12 min ago</div></div><span class="badge b-red">Denied</span></div>
+        <div class="access-row"><span class="access-dot ad-green"></span><div style="flex:1"><div>#03-18 — Domestic worker QR · Gate A</div><div style="font-size:11px;color:var(--mx-muted)">19 min ago</div></div><span class="badge b-green">Granted</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-checks" aria-hidden="true"></i> Pending approvals <span class="badge b-amber" style="margin-left:4px;font-size:10px">4</span></div>
+        <div class="stat-row"><div><div style="font-weight:500">Car registration — #08-14</div><div style="font-size:11px;color:var(--mx-muted)">Log card uploaded · 2h ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
+        <div class="stat-row"><div><div style="font-weight:500">New tenant — #04-22</div><div style="font-size:11px;color:var(--mx-muted)">Tenancy agreement · 5h ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
+        <div class="stat-row"><div><div style="font-weight:500">Sub-tenant — #11-08</div><div style="font-size:11px;color:var(--mx-muted)">Relationship: Renting · 1d ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
+        <div class="stat-row"><div><div style="font-weight:500">Car reg — #02-33</div><div style="font-size:11px;color:var(--mx-muted)">Log card uploaded · 2d ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-receipt" aria-hidden="true"></i> Fee collection — Jun 2025</div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Collected</span><strong style="color:var(--mx-white)">$218,400</strong></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Outstanding</span><span style="color:var(--mx-red)">$13,200</span></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Adjustments</span><span>$0</span></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Expected total</span><strong style="color:var(--mx-white)">$231,600</strong></div>
+        <div class="progress-bg" style="margin-top:14px"><div class="progress-fill" style="width:94%"></div></div>
+        <div style="font-size:11px;color:var(--mx-muted);margin-top:5px">94.2% collected</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-building-community" aria-hidden="true"></i> Facility occupancy today</div>
+        <div class="stat-row"><span><i class="ti ti-tennisball" style="font-size:13px;margin-right:5px;color:var(--mx-teal)" aria-hidden="true"></i>Tennis Courts (4)</span><div class="occ-bar"><div class="progress-bg" style="width:100px;margin-top:0"><div class="progress-fill" style="width:75%"></div></div><span style="font-size:11px;color:var(--mx-secondary);min-width:28px">75%</span></div></div>
+        <div class="stat-row"><span><i class="ti ti-pool" style="font-size:13px;margin-right:5px;color:var(--mx-blue)" aria-hidden="true"></i>Swimming Pool</span><div class="occ-bar"><div class="progress-bg" style="width:100px;margin-top:0"><div class="progress-fill" style="width:60%"></div></div><span style="font-size:11px;color:var(--mx-secondary);min-width:28px">60%</span></div></div>
+        <div class="stat-row"><span><i class="ti ti-microphone-2" style="font-size:13px;margin-right:5px;color:var(--mx-red)" aria-hidden="true"></i>Karaoke Room</span><div class="occ-bar"><div class="progress-bg" style="width:100px;margin-top:0"><div class="progress-fill danger" style="width:100%"></div></div><span style="font-size:11px;color:var(--mx-red);min-width:28px">Full</span></div></div>
+        <div class="stat-row"><span><i class="ti ti-table" style="font-size:13px;margin-right:5px;color:var(--mx-purple)" aria-hidden="true"></i>Function Room A</span><div class="occ-bar"><div class="progress-bg" style="width:100px;margin-top:0"><div class="progress-fill" style="width:50%"></div></div><span style="font-size:11px;color:var(--mx-secondary);min-width:28px">50%</span></div></div>
+        <div class="stat-row"><span><i class="ti ti-barbell" style="font-size:13px;margin-right:5px;color:var(--mx-amber)" aria-hidden="true"></i>Gymnasium</span><div class="occ-bar"><div class="progress-bg" style="width:100px;margin-top:0"><div class="progress-fill warn" style="width:74%"></div></div><span style="font-size:11px;color:var(--mx-secondary);min-width:28px">74%</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ OWNERS & TENANTS ════ -->
+  <div class="page" id="page-tenants">
+    <div class="section-hdr">
+      <div class="tab-bar" style="margin-bottom:0;border:none">
+        <div class="tab active" onclick="st('tn','all',event)">All units</div>
+        <div class="tab" onclick="st('tn','owners',event)">Owners</div>
+        <div class="tab" onclick="st('tn','tenants',event)">Tenants</div>
+        <div class="tab" onclick="st('tn','pending',event)">Pending <span class="badge b-amber" style="margin-left:4px;font-size:10px">3</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm"><i class="ti ti-table-import" aria-hidden="true"></i> Import Excel</button>
+        <button class="btn btn-sm btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add unit</button>
+      </div>
+    </div>
+
+    <div class="tab-pane active" id="tn-tab-all">
+      <div class="card" style="margin-bottom:14px;padding:12px 14px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <input class="inp" style="max-width:280px" placeholder="Search unit, name, NRIC…" aria-label="Search units">
+          <select class="inp" style="max-width:150px" aria-label="Filter by status"><option>All statuses</option><option>Paid</option><option>Overdue</option><option>Partial</option></select>
+          <select class="inp" style="max-width:150px" aria-label="Filter by type"><option>All types</option><option>Owner-occupied</option><option>Renting out</option></select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Unit</th><th>Primary owner</th><th>Occupancy</th><th>Residents</th><th>Vehicles</th><th>Fee status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><span class="unit-tag">#02-14</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-b">RK</div><div><div style="font-weight:500">Rajesh Kumar</div><div style="font-size:11px;color:var(--mx-muted)">rajesh.k@email.com</div></div></div></td><td><span class="badge b-teal">Owner-occupied</span></td><td>4 <span style="color:var(--mx-muted);font-size:11px">(spouse, 2 children)</span></td><td><span class="mono" style="font-size:11.5px">SKA1234B · SLB4567D</span></td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-sm">View</button></td></tr>
+              <tr><td><span class="unit-tag">#04-22</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-t">LH</div><div><div style="font-weight:500">Lee Hwee Leng</div><div style="font-size:11px;color:var(--mx-muted)">hwee.leng@gmail.com</div></div></div></td><td><span class="badge b-blue">Renting out</span></td><td>2 <span style="color:var(--mx-muted);font-size:11px">(tenants)</span></td><td><span class="mono" style="font-size:11.5px">SHA7890C</span></td><td><span class="badge b-amber">Partial</span></td><td><button class="btn btn-sm">View</button></td></tr>
+              <tr><td><span class="unit-tag">#07-08</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-a">NF</div><div><div style="font-weight:500">Noor Fadhilah</div><div style="font-size:11px;color:var(--mx-muted)">noor.f@proton.me</div></div></div></td><td><span class="badge b-teal">Owner-occupied</span></td><td>5 <span style="color:var(--mx-muted);font-size:11px">(spouse, 2 child, DW)</span></td><td><span class="mono" style="font-size:11.5px">SJA2200E</span></td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-sm">View</button></td></tr>
+              <tr><td><span class="unit-tag">#11-03</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-r">CW</div><div><div style="font-weight:500">Chen Wei Liang</div><div style="font-size:11px;color:var(--mx-muted)">cwl@outlook.sg</div></div></div></td><td><span class="badge b-purple">Owner overseas</span></td><td>3 <span style="color:var(--mx-muted);font-size:11px">(renting family)</span></td><td>—</td><td><span class="badge b-red">Overdue</span></td><td><button class="btn btn-sm">View</button></td></tr>
+              <tr><td><span class="unit-tag">#12-17</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-p">AS</div><div><div style="font-weight:500">Arjun Sharma</div><div style="font-size:11px;color:var(--mx-muted)">arjun.sg@icloud.com</div></div></div></td><td><span class="badge b-teal">Owner-occupied</span></td><td>2 <span style="color:var(--mx-muted);font-size:11px">(spouse)</span></td><td><span class="mono" style="font-size:11.5px">SBA4411G</span></td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-sm">View</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tn-tab-pending">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-clock" aria-hidden="true"></i> Awaiting approval</div>
+        <div class="pending-item">
+          <div class="avatar av-g" style="width:40px;height:40px;font-size:13px">TK</div>
+          <div style="flex:1">
+            <div style="font-weight:500">Tan Kim Seng <span class="badge b-amber" style="margin-left:6px">Sub-tenant</span></div>
+            <div style="font-size:12px;color:var(--mx-secondary)">Unit #04-22 · Relationship: Renting · Tenancy agreement uploaded</div>
+            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Self-registered via ManAgeX app · 5 hours ago</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-success"><i class="ti ti-check" aria-hidden="true"></i> Approve</button>
+            <button class="btn btn-sm btn-danger"><i class="ti ti-x" aria-hidden="true"></i> Reject</button>
+          </div>
+        </div>
+        <div class="pending-item">
+          <div class="avatar av-r" style="width:40px;height:40px;font-size:13px">MI</div>
+          <div style="flex:1">
+            <div style="font-weight:500">Muhammad Irfan <span class="badge b-teal" style="margin-left:6px">New owner</span></div>
+            <div style="font-size:12px;color:var(--mx-secondary)">Unit #08-01 · Ownership document uploaded</div>
+            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Registered at MA office · 2 days ago</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-success"><i class="ti ti-check" aria-hidden="true"></i> Approve</button>
+            <button class="btn btn-sm btn-danger"><i class="ti ti-x" aria-hidden="true"></i> Reject</button>
+          </div>
+        </div>
+        <div class="pending-item">
+          <div class="avatar av-t" style="width:40px;height:40px;font-size:13px">SL</div>
+          <div style="flex:1">
+            <div style="font-weight:500">Sri Lakshmi <span class="badge b-gray" style="margin-left:6px">Domestic worker</span></div>
+            <div style="font-size:12px;color:var(--mx-secondary)">Unit #07-08 · Added by owner Noor Fadhilah</div>
+            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Pending work permit verification · 3 days ago</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-success"><i class="ti ti-check" aria-hidden="true"></i> Approve</button>
+            <button class="btn btn-sm btn-danger"><i class="ti ti-x" aria-hidden="true"></i> Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tn-tab-owners">
+      <div class="card"><p style="color:var(--mx-secondary);font-size:13px;padding:8px 0">Showing 156 owner records across Riviera Gardens.</p></div>
+    </div>
+    <div class="tab-pane" id="tn-tab-tenants">
+      <div class="card"><p style="color:var(--mx-secondary);font-size:13px;padding:8px 0">Showing 132 active tenant/sub-tenant records.</p></div>
+    </div>
+  </div>
+
+  <!-- ════ MANAGEMENT FEES ════ -->
+  <div class="page" id="page-fees">
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-primary btn-sm"><i class="ti ti-mail-forward" aria-hidden="true"></i> Email all statements</button>
+      <button class="btn btn-sm"><i class="ti ti-file-export" aria-hidden="true"></i> Export report</button>
+      <button class="btn btn-sm"><i class="ti ti-plus" aria-hidden="true"></i> Record payment</button>
+    </div>
+
+    <div class="grid2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i> Unit #02-14 — Rajesh Kumar</div>
+        <div style="margin-bottom:12px">
+          <span class="fee-month fm-paid">Jan</span><span class="fee-month fm-paid">Feb</span><span class="fee-month fm-paid">Mar</span><span class="fee-month fm-paid">Apr</span><span class="fee-month fm-paid">May</span><span class="fee-month fm-paid">Jun</span><span class="fee-month fm-unpaid">Jul</span><span class="fee-month fm-unpaid">Aug</span><span class="fee-month fm-unpaid">Sep</span><span class="fee-month fm-unpaid">Oct</span><span class="fee-month fm-unpaid">Nov</span><span class="fee-month fm-unpaid">Dec</span>
+        </div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Monthly fee</span><strong style="color:var(--mx-white)">$850</strong></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Paid year-to-date</span><strong style="color:var(--mx-green)">$5,100</strong></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Outstanding</span><strong>$0</strong></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-sm"><i class="ti ti-file-invoice" aria-hidden="true"></i> Statement</button>
+          <button class="btn btn-sm"><i class="ti ti-mail" aria-hidden="true"></i> Email</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Unit #11-03 — Chen Wei Liang <span class="badge b-red" style="margin-left:6px">Overdue</span></div>
+        <div style="margin-bottom:12px">
+          <span class="fee-month fm-paid">Jan</span><span class="fee-month fm-paid">Feb</span><span class="fee-month fm-partial">Mar</span><span class="fee-month fm-overdue">Apr</span><span class="fee-month fm-overdue">May</span><span class="fee-month fm-overdue">Jun</span><span class="fee-month fm-unpaid">Jul</span><span class="fee-month fm-unpaid">Aug</span><span class="fee-month fm-unpaid">Sep</span><span class="fee-month fm-unpaid">Oct</span><span class="fee-month fm-unpaid">Nov</span><span class="fee-month fm-unpaid">Dec</span>
+        </div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Monthly fee</span><strong style="color:var(--mx-white)">$850</strong></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Paid year-to-date</span><strong>$2,200</strong></div>
+        <div class="stat-row"><span style="color:var(--mx-secondary)">Outstanding</span><strong style="color:var(--mx-red)">$3,300</strong></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-sm"><i class="ti ti-file-invoice" aria-hidden="true"></i> Statement</button>
+          <button class="btn btn-sm btn-danger"><i class="ti ti-mail-forward" aria-hidden="true"></i> Send reminder</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i> Overall collection — 2025</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Expected</th><th>Collected</th><th>Outstanding</th><th>Rate</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>January</td><td>$231,600</td><td>$229,800</td><td>$1,800</td><td>99.2%</td><td><span class="badge b-green">Closed</span></td></tr>
+            <tr><td>February</td><td>$231,600</td><td>$228,400</td><td>$3,200</td><td>98.6%</td><td><span class="badge b-green">Closed</span></td></tr>
+            <tr><td>March</td><td>$231,600</td><td>$225,100</td><td>$6,500</td><td>97.2%</td><td><span class="badge b-green">Closed</span></td></tr>
+            <tr><td>April</td><td>$231,600</td><td>$220,800</td><td>$10,800</td><td>95.3%</td><td><span class="badge b-green">Closed</span></td></tr>
+            <tr><td>May</td><td>$231,600</td><td>$221,400</td><td>$10,200</td><td>95.6%</td><td><span class="badge b-green">Closed</span></td></tr>
+            <tr><td>June</td><td>$231,600</td><td>$218,400</td><td>$13,200</td><td>94.2%</td><td><span class="badge b-amber">Open</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ ACCESS CONTROL ════ -->
+  <div class="page" id="page-access">
+    <div class="tab-bar">
+      <div class="tab active" onclick="st('ac','guests',event)"><i class="ti ti-qrcode" aria-hidden="true"></i> Guest management</div>
+      <div class="tab" onclick="st('ac','walkin',event)"><i class="ti ti-id-badge" aria-hidden="true"></i> Walk-in (security)</div>
+      <div class="tab" onclick="st('ac','vehicles',event)"><i class="ti ti-car-garage" aria-hidden="true"></i> ANPR / Vehicles</div>
+      <div class="tab" onclick="st('ac','log',event)"><i class="ti ti-list" aria-hidden="true"></i> Access log</div>
+    </div>
+
+    <div class="tab-pane active" id="ac-tab-guests">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title"><i class="ti ti-clock" aria-hidden="true"></i> Pre-registered visitors — today</div>
+        <div class="pending-item">
+          <div class="qr-preview"><svg width="44" height="44" viewBox="0 0 44 44" fill="currentColor" style="color:var(--mx-teal);opacity:.8"><rect x="2" y="2" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="5" y="5" width="10" height="10" opacity=".5"/><rect x="26" y="2" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="29" y="5" width="10" height="10" opacity=".5"/><rect x="2" y="26" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="5" y="29" width="10" height="10" opacity=".5"/><rect x="26" y="26" width="6" height="6" opacity=".6"/><rect x="34" y="26" width="6" height="6" opacity=".6"/><rect x="26" y="34" width="6" height="6" opacity=".6"/><rect x="36" y="36" width="6" height="6" opacity=".6"/></svg></div>
+          <div style="flex:1">
+            <div style="font-weight:500">David Tan Wei Ming</div>
+            <div style="font-size:12px;color:var(--mx-secondary)">Visiting #07-08 · +65 9123 4567 · QR sent via SMS</div>
+            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Valid: 24 Jun 10:00am – 11:00pm</div>
+          </div>
+          <span class="badge b-green"><i class="ti ti-qrcode" style="font-size:11px" aria-hidden="true"></i> QR active</span>
+        </div>
+        <div class="pending-item">
+          <div class="qr-preview"><i class="ti ti-car" style="font-size:22px;color:var(--mx-amber)" aria-hidden="true"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:500"><span class="mono">SJK4521T</span> — vehicle pass</div>
+            <div style="font-size:12px;color:var(--mx-secondary)">Visiting #02-14 · ANPR auto-grant enabled</div>
+            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Valid: 24 Jun 8:00am – 6:00pm</div>
+          </div>
+          <span class="badge b-amber">Pending ANPR</span>
+        </div>
+        <div class="pending-item" style="opacity:.6">
+          <div class="qr-preview"><i class="ti ti-check" style="font-size:22px;color:var(--mx-green)" aria-hidden="true"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:500">Priya Rajan</div>
+            <div style="font-size:12px;color:var(--mx-secondary)">Visited #12-17 · Entry 10:34am · Departed 12:52pm</div>
+          </div>
+          <span class="badge b-gray">Departed</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-plus" aria-hidden="true"></i> Invite a guest <span style="font-size:11px;font-weight:400;color:var(--mx-muted);margin-left:4px">— tenant self-service</span></div>
+        <div class="grid2">
+          <div>
+            <div class="form-row"><label class="form-label">Guest name</label><input class="inp" placeholder="Full name" aria-label="Guest name"></div>
+            <div class="form-row"><label class="form-label">Mobile number</label><input class="inp" placeholder="+65 XXXX XXXX" aria-label="Mobile number"></div>
+            <div class="form-row"><label class="form-label">Car plate (optional — triggers ANPR)</label><input class="inp" placeholder="e.g. SJK4521T" aria-label="Car plate number"></div>
+          </div>
+          <div>
+            <div class="form-row"><label class="form-label">Valid from</label><input class="inp" type="date" aria-label="Valid from date"></div>
+            <div class="form-row"><label class="form-label">Valid until</label><input class="inp" type="date" aria-label="Valid until date"></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center"><i class="ti ti-send" aria-hidden="true"></i> Send QR invite via SMS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ac-tab-walkin">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title"><i class="ti ti-walk" aria-hidden="true"></i> Walk-in registration <span style="font-size:11px;font-weight:400;color:var(--mx-muted);margin-left:4px">— security counter</span></div>
+        <div class="grid2">
+          <div>
+            <div class="form-row"><label class="form-label">Visitor full name</label><input class="inp" placeholder="As per ID" aria-label="Visitor name"></div>
+            <div class="form-row"><label class="form-label">NRIC / Passport / FIN</label><input class="inp" placeholder="ID number" aria-label="ID number"></div>
+            <div class="form-row"><label class="form-label">Mobile number</label><input class="inp" placeholder="+65 XXXX XXXX" aria-label="Mobile"></div>
+            <div class="form-row"><label class="form-label">Vehicle plate (if driving in)</label><input class="inp" placeholder="Optional" aria-label="Vehicle plate"></div>
+          </div>
+          <div>
+            <div class="form-row"><label class="form-label">Visiting unit</label><input class="inp" placeholder="e.g. #07-08" aria-label="Unit number"></div>
+            <div class="form-row"><label class="form-label">Purpose of visit</label><select class="inp" aria-label="Purpose"><option>Personal visit</option><option>Parcel / delivery</option><option>Contractor / works</option><option>Property viewing</option><option>Other</option></select></div>
+            <div class="form-row"><label class="form-label">Authorised by</label><input class="inp" placeholder="Tenant name / confirmed by" aria-label="Authorised by"></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center"><i class="ti ti-printer" aria-hidden="true"></i> Register & print visitor pass</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-eye" aria-hidden="true"></i> Expected visitors directory</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Unit</th><th>Resident</th><th>Expected visitor</th><th>Valid until</th><th>Method</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><span class="unit-tag">#07-08</span></td><td>Noor Fadhilah</td><td>David Tan Wei Ming</td><td>24 Jun 11:00pm</td><td><span class="badge b-teal">QR code</span></td><td><button class="btn btn-sm btn-primary">Grant access</button></td></tr>
+              <tr><td><span class="unit-tag">#02-14</span></td><td>Rajesh Kumar</td><td><span class="mono">SJK4521T</span></td><td>24 Jun 6:00pm</td><td><span class="badge b-amber">ANPR / plate</span></td><td><button class="btn btn-sm btn-primary">Grant access</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ac-tab-vehicles">
+      <div class="card" style="margin-bottom:14px">
+        <div class="section-hdr">
+          <div class="section-hdr-title">Registered vehicles</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge b-teal"><i class="ti ti-plug-connected" style="font-size:11px" aria-hidden="true"></i> ANPR API live</span>
+            <button class="btn btn-sm"><i class="ti ti-api" aria-hidden="true"></i> API docs</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Plate</th><th>Unit</th><th>Registered to</th><th>Type</th><th>Log card</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><strong class="mono">SKA1234B</strong></td><td><span class="unit-tag">#02-14</span></td><td>Rajesh Kumar</td><td>Car</td><td><span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px" aria-hidden="true"></i> Uploaded</span></td><td><span class="badge b-green">Approved</span></td><td><button class="btn btn-sm">Details</button></td></tr>
+              <tr><td><strong class="mono">SLB4567D</strong></td><td><span class="unit-tag">#02-14</span></td><td>Rajesh Kumar</td><td>Car</td><td><span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px" aria-hidden="true"></i> Uploaded</span></td><td><span class="badge b-green">Approved</span></td><td><button class="btn btn-sm">Details</button></td></tr>
+              <tr><td><strong class="mono">SHA7890C</strong></td><td><span class="unit-tag">#04-22</span></td><td>Lee Hwee Leng</td><td>Car</td><td><span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px" aria-hidden="true"></i> Uploaded</span></td><td><span class="badge b-green">Approved</span></td><td><button class="btn btn-sm">Details</button></td></tr>
+              <tr><td><strong class="mono">SBA4411G</strong></td><td><span class="unit-tag">#12-17</span></td><td>Arjun Sharma</td><td>Car</td><td><span class="badge b-amber"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> Pending review</span></td><td><span class="badge b-amber">Under review</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-api" aria-hidden="true"></i> ANPR integration API</div>
+        <p style="font-size:12px;color:var(--mx-secondary);margin-bottom:12px">Your ANPR camera system calls this endpoint. ManAgeX checks the plate against registered residents and pre-approved guest lists, and returns an access decision instantly.</p>
+        <div class="code-block">
+<span class="comment"># POST — check plate at gate</span>
+<span class="key">POST</span> https://api.managex.sg/v1/anpr/check
+<span class="key">Authorization:</span> <span class="str">Bearer {api_key}</span>
+<span class="key">Content-Type:</span> <span class="str">application/json</span>
+
+{
+  <span class="key">"plate"</span>: <span class="str">"SJK4521T"</span>,
+  <span class="key">"gate_id"</span>: <span class="str">"carpark-a"</span>,
+  <span class="key">"property_id"</span>: <span class="str">"riviera-gardens"</span>,
+  <span class="key">"timestamp"</span>: <span class="str">"2025-06-24T10:33:00+08:00"</span>
+}
+
+<span class="comment"># Response</span>
+{
+  <span class="key">"access"</span>: <span class="ok">"granted"</span>,
+  <span class="key">"reason"</span>: <span class="str">"pre_registered_guest"</span>,
+  <span class="key">"unit"</span>: <span class="str">"#02-14"</span>,
+  <span class="key">"host"</span>: <span class="str">"Rajesh Kumar"</span>,
+  <span class="key">"valid_until"</span>: <span class="str">"2025-06-24T18:00:00+08:00"</span>,
+  <span class="key">"log_id"</span>: <span class="str">"acc_20250624_4821"</span>
+}
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="ac-tab-log">
+      <div class="card">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <input class="inp" style="max-width:220px" placeholder="Search plate, name, unit…" aria-label="Search access log">
+          <select class="inp" style="max-width:130px" aria-label="Filter by gate"><option>All gates</option><option>Gate A</option><option>Gate B</option><option>Car park</option></select>
+          <select class="inp" style="max-width:130px" aria-label="Filter by outcome"><option>All outcomes</option><option>Granted</option><option>Denied</option><option>Pending</option></select>
+          <input class="inp" type="date" style="max-width:160px" aria-label="Filter by date">
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Identity</th><th>Gate</th><th>Method</th><th>Unit</th><th>Outcome</th></tr></thead>
+            <tbody>
+              <tr><td class="mono" style="font-size:12px">10:41am</td><td>David Tan Wei Ming — QR scan</td><td>Gate A</td><td><span class="badge b-teal">QR code</span></td><td><span class="unit-tag">#07-08</span></td><td><span class="badge b-green">Granted</span></td></tr>
+              <tr><td class="mono" style="font-size:12px">10:38am</td><td><span class="mono">SJK4521T</span> — ANPR scan</td><td>Car park</td><td><span class="badge b-amber">ANPR</span></td><td><span class="unit-tag">#02-14</span></td><td><span class="badge b-amber">Pending</span></td></tr>
+              <tr><td class="mono" style="font-size:12px">10:33am</td><td>Resident access card · #12-05</td><td>Gate B</td><td><span class="badge b-blue">Access card</span></td><td><span class="unit-tag">#12-05</span></td><td><span class="badge b-green">Granted</span></td></tr>
+              <tr><td class="mono" style="font-size:12px">10:29am</td><td><span class="mono">SKL8812</span> — unregistered</td><td>Car park</td><td><span class="badge b-amber">ANPR</span></td><td>—</td><td><span class="badge b-red">Denied</span></td></tr>
+              <tr><td class="mono" style="font-size:12px">10:22am</td><td>FIN G1234567A — QR scan</td><td>Gate A</td><td><span class="badge b-teal">QR code</span></td><td><span class="unit-tag">#03-18</span></td><td><span class="badge b-green">Granted</span></td></tr>
+              <tr><td class="mono" style="font-size:12px">10:11am</td><td>Parcel delivery — walk-in</td><td>Gate A</td><td><span class="badge b-gray">Manual</span></td><td><span class="unit-tag">#09-22</span></td><td><span class="badge b-green">Granted</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ FACILITIES ════ -->
+  <div class="page" id="page-facilities">
+    <div class="section-hdr">
+      <div class="tab-bar" style="margin-bottom:0;border:none">
+        <div class="tab active" onclick="st('fc','cal',event)">Calendar</div>
+        <div class="tab" onclick="st('fc','occ',event)">Occupancy</div>
+        <div class="tab" onclick="st('fc','assets',event)">Manage facilities</div>
+      </div>
+      <button class="btn btn-primary btn-sm"><i class="ti ti-plus" aria-hidden="true"></i> New booking</button>
+    </div>
+
+    <div class="tab-pane active" id="fc-tab-cal">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <strong style="color:var(--mx-white)">June 2025</strong>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm">Day</button>
+            <button class="btn btn-sm btn-primary">Week</button>
+            <button class="btn btn-sm">Month</button>
+          </div>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-hdr">Mon</div><div class="cal-hdr">Tue</div><div class="cal-hdr">Wed</div><div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div><div class="cal-hdr">Sun</div>
+          <div class="cal-day"><div class="cal-daynum">23</div></div>
+          <div class="cal-day busy"><div class="cal-daynum">24</div><span class="booking-chip bc-teal">Tennis A · 9am</span><span class="booking-chip bc-blue">Pool · 2pm</span></div>
+          <div class="cal-day busy"><div class="cal-daynum">25</div><span class="booking-chip bc-purple">Karaoke · 7pm</span></div>
+          <div class="cal-day"><div class="cal-daynum">26</div></div>
+          <div class="cal-day busy"><div class="cal-daynum">27</div><span class="booking-chip bc-teal">Tennis C · 8am</span><span class="booking-chip bc-purple">Function A · 6pm</span></div>
+          <div class="cal-day full"><div class="cal-daynum">28</div><span class="booking-chip bc-teal">Tennis A · 10am</span><span class="booking-chip bc-blue">Pool · all day</span><span class="booking-chip bc-purple">Karaoke · 4pm</span></div>
+          <div class="cal-day full"><div class="cal-daynum">29</div><span class="booking-chip bc-teal">Tennis B · 9am</span><span class="booking-chip bc-purple">Function A</span><span class="booking-chip bc-amber">BBQ Pit · 6pm</span></div>
+          <div class="cal-day busy"><div class="cal-daynum">30</div><span class="booking-chip bc-teal">Tennis D · 7am</span></div>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap">
+          <div class="leg"><span class="leg-dot" style="background:var(--mx-teal)"></span> Tennis</div>
+          <div class="leg"><span class="leg-dot" style="background:var(--mx-blue)"></span> Pool</div>
+          <div class="leg"><span class="leg-dot" style="background:var(--mx-purple)"></span> Karaoke / Function</div>
+          <div class="leg"><span class="leg-dot" style="background:var(--mx-amber)"></span> BBQ pits</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="fc-tab-occ">
+      <div class="grid3">
+        <div class="fac-kpi"><div style="font-size:20px;font-weight:600;color:var(--mx-white)">68%</div><div style="font-size:12px;font-weight:500;margin:4px 0;color:var(--mx-text)"><i class="ti ti-tennisball" style="font-size:13px;margin-right:4px;color:var(--mx-teal)" aria-hidden="true"></i>Tennis Courts (4)</div><div class="progress-bg"><div class="progress-fill" style="width:68%"></div></div><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">82 bookings this month · Peak: Sat 9–11am</div></div>
+        <div class="fac-kpi"><div style="font-size:20px;font-weight:600;color:var(--mx-white)">55%</div><div style="font-size:12px;font-weight:500;margin:4px 0;color:var(--mx-text)"><i class="ti ti-pool" style="font-size:13px;margin-right:4px;color:var(--mx-blue)" aria-hidden="true"></i>Swimming Pool</div><div class="progress-bg"><div class="progress-fill" style="width:55%"></div></div><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">Open access · No booking required</div></div>
+        <div class="fac-kpi"><div style="font-size:20px;font-weight:600;color:var(--mx-red)">91%</div><div style="font-size:12px;font-weight:500;margin:4px 0;color:var(--mx-text)"><i class="ti ti-microphone-2" style="font-size:13px;margin-right:4px;color:var(--mx-red)" aria-hidden="true"></i>Karaoke Room</div><div class="progress-bg"><div class="progress-fill danger" style="width:91%"></div></div><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">44 bookings · Always full on weekends</div></div>
+        <div class="fac-kpi"><div style="font-size:20px;font-weight:600;color:var(--mx-white)">42%</div><div style="font-size:12px;font-weight:500;margin:4px 0;color:var(--mx-text)"><i class="ti ti-table" style="font-size:13px;margin-right:4px;color:var(--mx-purple)" aria-hidden="true"></i>Function Room A</div><div class="progress-bg"><div class="progress-fill" style="width:42%"></div></div><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">18 bookings · Up to 80 pax</div></div>
+        <div class="fac-kpi"><div style="font-size:20px;font-weight:600;color:var(--mx-white)">74%</div><div style="font-size:12px;font-weight:500;margin:4px 0;color:var(--mx-text)"><i class="ti ti-barbell" style="font-size:13px;margin-right:4px;color:var(--mx-amber)" aria-hidden="true"></i>Gymnasium</div><div class="progress-bg"><div class="progress-fill warn" style="width:74%"></div></div><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">Open access · Capped at 20 pax</div></div>
+        <div class="fac-kpi"><div style="font-size:20px;font-weight:600;color:var(--mx-white)">28%</div><div style="font-size:12px;font-weight:500;margin:4px 0;color:var(--mx-text)"><i class="ti ti-device-gamepad-2" style="font-size:13px;margin-right:4px;color:var(--mx-secondary)" aria-hidden="true"></i>Games Room</div><div class="progress-bg"><div class="progress-fill" style="width:28%"></div></div><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">Billiards, table tennis, foosball</div></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="fc-tab-assets">
+      <div class="card">
+        <div class="section-hdr"><div class="section-hdr-title">Facility registry</div><button class="btn btn-sm btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add facility</button></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Facility</th><th>Category</th><th>Capacity</th><th>Booking rules</th><th>Max/unit/month</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Tennis Court A–D</td><td>Sports</td><td>4 per court</td><td>1h slots · 7am–10pm</td><td>4 bookings</td><td><span class="badge b-green">Active</span></td></tr>
+              <tr><td>Swimming Pool</td><td>Leisure</td><td>30 pax</td><td>Open access</td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+              <tr><td>Karaoke Room</td><td>Entertainment</td><td>10 pax</td><td>2h slots · 4pm–12am</td><td>2 bookings</td><td><span class="badge b-green">Active</span></td></tr>
+              <tr><td>Function Room A</td><td>Event</td><td>80 pax</td><td>Half / full day</td><td>2 bookings</td><td><span class="badge b-green">Active</span></td></tr>
+              <tr><td>BBQ Pits (3)</td><td>Outdoor</td><td>15 per pit</td><td>Evening slot</td><td>2 bookings</td><td><span class="badge b-amber">Maintenance</span></td></tr>
+              <tr><td>Games Room</td><td>Leisure</td><td>15 pax</td><td>Open access</td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+              <tr><td>Gymnasium</td><td>Fitness</td><td>20 pax</td><td>Open access · 6am–11pm</td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ VEHICLES ════ -->
+  <div class="page" id="page-vehicles">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-car" aria-hidden="true"></i> Register a vehicle <span style="font-size:11px;font-weight:400;color:var(--mx-muted);margin-left:4px">— tenant self-service · max 2 vehicles per unit</span></div>
+      <div class="grid2">
+        <div>
+          <div class="form-row"><label class="form-label">Vehicle plate number</label><input class="inp" placeholder="e.g. SBA4411G" aria-label="Plate number"></div>
+          <div class="form-row"><label class="form-label">Vehicle make / model</label><input class="inp" placeholder="e.g. Toyota Camry" aria-label="Vehicle model"></div>
+          <div class="form-row"><label class="form-label">Vehicle type</label><select class="inp" aria-label="Vehicle type"><option>Car</option><option>Motorcycle</option><option>Van / commercial</option></select></div>
+          <div class="form-row"><label class="form-label">Registered to (unit)</label><input class="inp" placeholder="#XX-XX" aria-label="Unit number"></div>
+        </div>
+        <div>
+          <div class="form-row">
+            <label class="form-label">Log card (required for approval)</label>
+            <div class="upload-zone" role="button" tabindex="0" aria-label="Upload log card">
+              <i class="ti ti-upload" style="font-size:28px;color:var(--mx-muted);display:block;margin-bottom:8px" aria-hidden="true"></i>
+              <div style="font-size:13px;color:var(--mx-secondary);font-weight:500">Upload log card</div>
+              <div style="font-size:11px;color:var(--mx-muted);margin-top:4px">JPG, PNG or PDF · Max 5MB</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px"><i class="ti ti-send" aria-hidden="true"></i> Submit for MA approval</button>
+          <div style="font-size:11px;color:var(--mx-muted);margin-top:8px;text-align:center">The MA office will review your log card and approve within 1–2 business days. You will be notified by email and in-app.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAYMENTS ════ -->
+  <div class="page" id="page-payments">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-cash" aria-hidden="true"></i> Pay management fee</div>
+        <div style="text-align:center;margin-bottom:18px">
+          <div style="font-size:12px;color:var(--mx-secondary);margin-bottom:4px">Unit #02-14 · June 2025</div>
+          <div style="font-size:32px;font-weight:600;color:var(--mx-white)">$850.00</div>
+          <div style="font-size:11px;color:var(--mx-green);margin-top:4px">All previous months paid</div>
+        </div>
+        <div class="paynow-frame">
+          <div style="font-size:14px;font-weight:700;color:#D4537E;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#D4537E"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            PayNow
+          </div>
+          <svg width="130" height="130" viewBox="0 0 130 130" style="display:block;margin:0 auto 10px">
+            <rect width="130" height="130" fill="white"/>
+            <rect x="8" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
+            <rect x="14" y="14" width="32" height="32" fill="#333"/>
+            <rect x="78" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
+            <rect x="84" y="14" width="32" height="32" fill="#333"/>
+            <rect x="8" y="78" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
+            <rect x="14" y="84" width="32" height="32" fill="#333"/>
+            <rect x="60" y="60" width="10" height="10" fill="#333"/>
+            <rect x="76" y="60" width="8" height="8" fill="#333"/>
+            <rect x="90" y="60" width="12" height="10" fill="#333"/>
+            <rect x="106" y="60" width="8" height="8" fill="#333"/>
+            <rect x="60" y="76" width="8" height="8" fill="#333"/>
+            <rect x="78" y="76" width="12" height="12" fill="#333"/>
+            <rect x="98" y="76" width="8" height="8" fill="#333"/>
+            <rect x="112" y="78" width="8" height="8" fill="#333"/>
+            <rect x="60" y="92" width="10" height="10" fill="#333"/>
+            <rect x="76" y="92" width="8" height="8" fill="#333"/>
+            <rect x="90" y="90" width="12" height="12" fill="#333"/>
+            <rect x="106" y="92" width="10" height="8" fill="#333"/>
+            <rect x="60" y="108" width="8" height="10" fill="#333"/>
+            <rect x="74" y="106" width="10" height="12" fill="#333"/>
+            <rect x="90" y="106" width="8" height="12" fill="#333"/>
+            <rect x="104" y="108" width="14" height="10" fill="#333"/>
+          </svg>
+          <div style="font-size:12px;font-weight:600;color:#333">UEN: 202411234A</div>
+          <div style="font-size:11px;color:#666;margin-top:3px">Reference: RG-0214-JUN25</div>
+          <div style="font-size:10px;color:#999;margin-top:6px">Scan with your banking app</div>
+        </div>
+        <div style="margin-top:14px;text-align:center">
+          <button class="btn" style="width:100%;justify-content:center;color:var(--mx-muted)"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit / debit card — coming soon</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-history" aria-hidden="true"></i> Payment history</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Period</th><th>Amount</th><th>Method</th><th>Reference</th></tr></thead>
+            <tbody>
+              <tr><td>1 Jun</td><td>Jun 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-JUN25</td></tr>
+              <tr><td>1 May</td><td>May 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-MAY25</td></tr>
+              <tr><td>2 Apr</td><td>Apr 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-APR25</td></tr>
+              <tr><td>28 Feb</td><td>Mar 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-MAR25</td></tr>
+              <tr><td>4 Feb</td><td>Feb 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-FEB25</td></tr>
+              <tr><td>3 Jan</td><td>Jan 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-JAN25</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ REPORTS ════ -->
+  <div class="page" id="page-reports">
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="report-card" onclick="alert('Opening fee collection report for Q2 2025…')">
+        <i class="ti ti-file-analytics" style="color:var(--mx-teal)" aria-hidden="true"></i>
+        <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Fee collection report</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Overall & per-unit summary, filterable by period</div>
+      </div>
+      <div class="report-card" onclick="alert('Opening facility utilisation report for June 2025…')">
+        <i class="ti ti-chart-bar" style="color:var(--mx-blue)" aria-hidden="true"></i>
+        <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Facility utilisation</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Occupancy rates by amenity and time period</div>
+      </div>
+      <div class="report-card" onclick="alert('Opening access control log with anomaly detection…')">
+        <i class="ti ti-door-enter" style="color:var(--mx-purple)" aria-hidden="true"></i>
+        <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Access control log</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Entry/exit events, denials, and anomalies</div>
+      </div>
+      <div class="report-card" onclick="alert('Loading overdue accounts report…')">
+        <i class="ti ti-alert-triangle" style="color:var(--mx-amber)" aria-hidden="true"></i>
+        <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Overdue accounts</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Units with outstanding management fees</div>
+      </div>
+      <div class="report-card" onclick="alert('Opening vehicle registry report…')">
+        <i class="ti ti-car" style="color:var(--mx-secondary)" aria-hidden="true"></i>
+        <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Vehicle registry</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">All registered, pending, and rejected vehicles</div>
+      </div>
+      <div class="report-card" onclick="alert('Generating full occupancy and tenant report…')">
+        <i class="ti ti-home-stats" style="color:var(--mx-green)" aria-hidden="true"></i>
+        <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Occupancy report</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Unit status, tenants, vacancies, and sub-tenants</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px;color:var(--mx-muted)">
+      <i class="ti ti-file-export" style="font-size:18px;margin-right:6px" aria-hidden="true"></i>
+      All reports export to Excel or PDF · Email delivery supported
+    </div>
+  </div>
+
+  <!-- ════ SETTINGS (placeholder) ════ -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-settings" aria-hidden="true"></i> System settings</div>
+      <p style="color:var(--mx-secondary);font-size:13px">Property configuration, user roles, API keys, email templates, PayNow UEN setup, ANPR integration, and notification preferences.</p>
+    </div>
+  </div>
+
+  </main>
+</div>
+</div>
+
+<script>
+const NAV = [
+  {group:"Overview", items:[
+    {id:"dashboard", icon:"ti-layout-dashboard", label:"Dashboard"},
+  ]},
+  {group:"Residents", items:[
+    {id:"tenants", icon:"ti-users", label:"Owners & Tenants", badge:3, badgeClass:"nav-badge nav-badge-amber"},
+    {id:"vehicles", icon:"ti-car", label:"Vehicle Registry"},
+  ]},
+  {group:"Operations", items:[
+    {id:"access", icon:"ti-shield-lock", label:"Access Control"},
+    {id:"facilities", icon:"ti-building-community", label:"Facilities"},
+  ]},
+  {group:"Finance", items:[
+    {id:"fees", icon:"ti-receipt", label:"Management Fees"},
+    {id:"payments", icon:"ti-cash", label:"Payments"},
+    {id:"reports", icon:"ti-chart-pie", label:"Reports"},
+  ]},
+];
+
+const TITLES = {
+  dashboard:"Dashboard", tenants:"Owners & Tenants",
+  vehicles:"Vehicle Registry", access:"Access Control",
+  facilities:"Facilities & Bookings", fees:"Management Fees",
+  payments:"Payments", reports:"Reports", settings:"Settings"
+};
+
+const root = document.getElementById('nav-root');
+NAV.forEach(g => {
+  root.innerHTML += `<div class="nav-group"><div class="nav-group-label">${g.group}</div>` +
+    g.items.map(it =>
+      `<div class="nav-item" id="nav-${it.id}" onclick="goto('${it.id}')" role="button" tabindex="0" aria-label="${it.label}">
+        <i class="ti ${it.icon}" aria-hidden="true"></i>
+        <span>${it.label}</span>
+        ${it.badge ? `<span class="${it.badgeClass}">${it.badge}</span>` : ''}
+      </div>`
+    ).join('') + '</div>';
+});
+
+let cur = 'dashboard';
+document.getElementById('nav-dashboard').classList.add('active');
+
+function goto(id) {
+  if (!document.getElementById('page-' + id)) return;
+  document.getElementById('page-' + cur).classList.remove('active');
+  const oldNav = document.getElementById('nav-' + cur);
+  if (oldNav) oldNav.classList.remove('active');
+  cur = id;
+  document.getElementById('page-' + id).classList.add('active');
+  const newNav = document.getElementById('nav-' + id);
+  if (newNav) newNav.classList.add('active');
+  document.getElementById('pg-title').textContent = TITLES[id] || id;
+}
+
+// tab switcher: group prefix, tab id, event
+function st(group, tab, e) {
+  const page = document.getElementById('page-' + group) ||
+                document.querySelector('.page.active');
+  const allTabs = document.querySelectorAll(`#page-${group} .tab, .page.active .tab`);
+  allTabs.forEach(t => t.classList.remove('active'));
+  if (e && e.target) e.target.classList.add('active');
+
+  const allPanes = document.querySelectorAll(`[id^="${group}-tab-"]`);
+  allPanes.forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(`${group}-tab-${tab}`);
+  if (target) target.classList.add('active');
+}
+
+// keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.target.classList.contains('nav-item') && (e.key === 'Enter' || e.key === ' ')) {
+    e.target.click();
+  }
+});
+</script>
+</body>
+</html>

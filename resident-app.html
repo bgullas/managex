@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ManAgeX — Resident App</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --mx-bg: #0D0F12;
+  --mx-card: #1A1D23;
+  --mx-panel: #22262E;
+  --mx-border: #2E3340;
+  --mx-muted: #5A6070;
+  --mx-secondary: #8B93A5;
+  --mx-text: #E8ECF4;
+  --mx-white: #F4F7FF;
+  --mx-teal: #00C9A7;
+  --mx-teal-dim: #00C9A720;
+  --mx-amber: #F5A623;
+  --mx-amber-dim: #F5A62320;
+  --mx-red: #E8455A;
+  --mx-red-dim: #E8455A20;
+  --mx-green: #34C759;
+  --mx-green-dim: #34C75920;
+  --mx-blue: #4D90FE;
+  --mx-blue-dim: #4D90FE20;
+  --r-sm: 10px; --r-md: 14px; --r-lg: 18px; --r-xl: 22px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--mx-bg);
+  color: var(--mx-text);
+  font-size: 14px;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+.status-bar { height: 44px; background: var(--mx-card); display: flex; align-items: center; justify-content: space-between; padding: 0 18px; flex-shrink: 0; }
+.status-time { font-size: 15px; font-weight: 600; color: var(--mx-white); }
+.status-icons { display: flex; gap: 6px; align-items: center; color: var(--mx-secondary); font-size: 13px; }
+
+.scrollable { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+.scrollable::-webkit-scrollbar { display: none; }
+
+/* Header */
+.app-header { padding: 18px 20px 0; }
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.greeting { font-size: 22px; font-weight: 600; color: var(--mx-white); }
+.unit-chip { background: var(--mx-teal-dim); color: var(--mx-teal); border: 1px solid var(--mx-teal)30; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; font-family: 'Courier New', monospace; }
+.sub-greeting { font-size: 13px; color: var(--mx-secondary); margin-top: 2px; }
+
+/* Quick actions */
+.quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 16px 20px; }
+.qa { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.qa-icon { width: 52px; height: 52px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; transition: transform .15s; }
+.qa-icon:active { transform: scale(.94); }
+.qa-label { font-size: 10.5px; color: var(--mx-secondary); text-align: center; line-height: 1.3; }
+.qa-teal { background: var(--mx-teal-dim); color: var(--mx-teal); }
+.qa-blue { background: var(--mx-blue-dim); color: var(--mx-blue); }
+.qa-amber { background: var(--mx-amber-dim); color: var(--mx-amber); }
+.qa-green { background: var(--mx-green-dim); color: var(--mx-green); }
+.qa-red { background: var(--mx-red-dim); color: var(--mx-red); }
+.qa-purple { background: #A78BFA20; color: #A78BFA; }
+
+/* Cards */
+.section { padding: 0 20px; margin-bottom: 18px; }
+.section-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--mx-muted); margin-bottom: 10px; }
+.card { background: var(--mx-card); border: 1px solid var(--mx-border); border-radius: var(--r-lg); padding: 16px; }
+.card + .card { margin-top: 10px; }
+
+/* Fee status card */
+.fee-hero { padding: 20px; border-radius: var(--r-xl); background: linear-gradient(135deg, #00C9A715, #00C9A705); border: 1px solid var(--mx-teal)25; }
+.fee-month-label { font-size: 12px; color: var(--mx-secondary); margin-bottom: 6px; }
+.fee-amount { font-size: 36px; font-weight: 600; color: var(--mx-white); line-height: 1; }
+.fee-status-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.fee-pill { background: var(--mx-green-dim); color: var(--mx-green); border: 1px solid var(--mx-green)20; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; }
+.fee-pill.overdue { background: var(--mx-red-dim); color: var(--mx-red); border-color: var(--mx-red)20; }
+
+/* Months mini */
+.months-row { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
+.mo { font-size: 10px; padding: 3px 6px; border-radius: 5px; font-weight: 500; }
+.mo-paid { background: var(--mx-green-dim); color: var(--mx-green); }
+.mo-unpaid { background: var(--mx-panel); color: var(--mx-muted); }
+
+/* Pay button */
+.pay-btn { width: 100%; margin-top: 14px; padding: 14px; border-radius: var(--r-md); background: var(--mx-teal); color: #fff; font-size: 15px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
+.pay-btn:active { background: #00b394; }
+
+/* Guest / access items */
+.access-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--mx-border)60; }
+.access-item:last-child { border-bottom: none; padding-bottom: 0; }
+.access-icon { width: 40px; height: 40px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.access-info { flex: 1; }
+.access-name { font-weight: 500; font-size: 14px; color: var(--mx-white); }
+.access-sub { font-size: 11px; color: var(--mx-secondary); margin-top: 2px; }
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.b-green { background: var(--mx-green-dim); color: var(--mx-green); }
+.b-amber { background: var(--mx-amber-dim); color: var(--mx-amber); }
+.b-gray { background: #ffffff10; color: var(--mx-secondary); }
+.b-blue { background: var(--mx-blue-dim); color: var(--mx-blue); }
+.b-teal { background: var(--mx-teal-dim); color: var(--mx-teal); }
+
+/* Invite form */
+.invite-form { display: none; }
+.invite-form.open { display: block; }
+.inp { width: 100%; padding: 11px 13px; background: var(--mx-panel); border: 1px solid var(--mx-border); border-radius: var(--r-sm); color: var(--mx-text); font-size: 14px; font-family: 'Inter', sans-serif; margin-bottom: 10px; }
+.inp:focus { outline: none; border-color: var(--mx-teal); }
+.inp::placeholder { color: var(--mx-muted); }
+.btn-secondary { width: 100%; padding: 12px; border-radius: var(--r-md); background: var(--mx-panel); color: var(--mx-text); font-size: 14px; font-weight: 500; border: 1px solid var(--mx-border); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* Booking card */
+.booking-slot { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--mx-panel); border-radius: var(--r-sm); margin-bottom: 8px; cursor: pointer; border: 1px solid var(--mx-border); transition: border-color .15s; }
+.booking-slot:hover { border-color: var(--mx-teal); }
+.slot-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.slot-avail { background: var(--mx-green); }
+.slot-busy { background: var(--mx-red); }
+.slot-partial { background: var(--mx-amber); }
+.slot-name { font-size: 13px; font-weight: 500; color: var(--mx-text); }
+.slot-detail { font-size: 11px; color: var(--mx-secondary); }
+
+/* Bottom nav */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--mx-card); border-top: 1px solid var(--mx-border); display: flex; padding: 8px 0 16px; z-index: 100; }
+.bn-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px; }
+.bn-item i { font-size: 22px; color: var(--mx-muted); transition: color .15s; }
+.bn-item span { font-size: 10px; color: var(--mx-muted); font-weight: 500; }
+.bn-item.active i { color: var(--mx-teal); }
+.bn-item.active span { color: var(--mx-teal); }
+
+/* Screen views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Vehicles */
+.vehicle-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--mx-panel); border: 1px solid var(--mx-border); border-radius: var(--r-md); margin-bottom: 8px; }
+.vehicle-icon { width: 44px; height: 44px; background: var(--mx-blue-dim); border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--mx-blue); flex-shrink: 0; }
+.vehicle-plate { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; color: var(--mx-white); letter-spacing: .05em; }
+.vehicle-detail { font-size: 12px; color: var(--mx-secondary); }
+.add-vehicle-btn { width: 100%; padding: 14px; border-radius: var(--r-md); border: 1.5px dashed var(--mx-border); background: transparent; color: var(--mx-secondary); font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; margin-top: 4px; transition: all .15s; }
+.add-vehicle-btn:hover { border-color: var(--mx-teal); color: var(--mx-teal); }
+
+/* QR display modal overlay */
+.qr-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; align-items: center; justify-content: center; }
+.qr-overlay.open { display: flex; }
+.qr-modal { background: var(--mx-card); border: 1px solid var(--mx-border); border-radius: var(--r-xl); padding: 28px 24px; text-align: center; width: 320px; }
+.qr-title { font-size: 18px; font-weight: 600; color: var(--mx-white); margin-bottom: 4px; }
+.qr-sub { font-size: 12px; color: var(--mx-secondary); margin-bottom: 20px; }
+.qr-close { margin-top: 18px; width: 100%; padding: 12px; background: var(--mx-panel); border: 1px solid var(--mx-border); border-radius: var(--r-md); color: var(--mx-text); font-size: 14px; cursor: pointer; }
+
+/* Notif badge */
+.notif-badge { position: relative; }
+.notif-badge::after { content: ''; position: absolute; top: 0; right: 0; width: 7px; height: 7px; background: var(--mx-red); border-radius: 50%; border: 1.5px solid var(--mx-card); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="status-bar">
+    <span class="status-time">10:42</span>
+    <div class="status-icons"><i class="ti ti-wifi"></i><i class="ti ti-signal-5g"></i><i class="ti ti-battery-3"></i></div>
+  </div>
+
+  <div class="scrollable" id="scrollable">
+
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="app-header">
+        <div class="header-row">
+          <div class="greeting">Hello, Rajesh 👋</div>
+          <span class="unit-tag" style="font-family:'Courier New';font-size:12px;font-weight:700;background:#00C9A720;color:#00C9A7;border:1px solid #00C9A730;padding:4px 10px;border-radius:20px">#02-14</span>
+        </div>
+        <div class="sub-greeting">Riviera Gardens · Bishan</div>
+      </div>
+
+      <div class="quick-actions">
+        <div class="qa" onclick="switchView('guests')"><div class="qa-icon qa-teal"><i class="ti ti-qrcode" aria-hidden="true"></i></div><div class="qa-label">Invite guest</div></div>
+        <div class="qa" onclick="switchView('payment')"><div class="qa-icon qa-green"><i class="ti ti-cash" aria-hidden="true"></i></div><div class="qa-label">Pay fees</div></div>
+        <div class="qa" onclick="switchView('book')"><div class="qa-icon qa-blue"><i class="ti ti-calendar-plus" aria-hidden="true"></i></div><div class="qa-label">Book facility</div></div>
+        <div class="qa" onclick="switchView('vehicles')"><div class="qa-icon qa-amber"><i class="ti ti-car" aria-hidden="true"></i></div><div class="qa-label">My vehicles</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Management fee</div>
+        <div class="fee-hero">
+          <div class="fee-month-label">June 2025</div>
+          <div class="fee-amount">$850</div>
+          <div class="fee-status-row">
+            <div>
+              <div class="fee-pill">Paid ✓</div>
+            </div>
+            <div style="font-size:12px;color:var(--mx-secondary);text-align:right">All 2025 fees<br>up to date</div>
+          </div>
+          <div class="months-row">
+            <span class="mo mo-paid">Jan</span><span class="mo mo-paid">Feb</span><span class="mo mo-paid">Mar</span>
+            <span class="mo mo-paid">Apr</span><span class="mo mo-paid">May</span><span class="mo mo-paid">Jun</span>
+            <span class="mo mo-unpaid">Jul</span><span class="mo mo-unpaid">Aug</span><span class="mo mo-unpaid">Sep</span>
+            <span class="mo mo-unpaid">Oct</span><span class="mo mo-unpaid">Nov</span><span class="mo mo-unpaid">Dec</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Active guest passes</div>
+        <div class="card">
+          <div class="access-item">
+            <div class="access-icon" style="background:var(--mx-teal-dim);color:var(--mx-teal)"><i class="ti ti-qrcode" aria-hidden="true"></i></div>
+            <div class="access-info">
+              <div class="access-name">David Tan Wei Ming</div>
+              <div class="access-sub">Today until 11:00pm · QR sent via SMS</div>
+            </div>
+            <span class="badge b-green">Active</span>
+          </div>
+          <div class="access-item">
+            <div class="access-icon" style="background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-car" aria-hidden="true"></i></div>
+            <div class="access-info">
+              <div class="access-name" style="font-family:'Courier New';letter-spacing:.04em">SJK4521T</div>
+              <div class="access-sub">Vehicle pass · Today until 6:00pm</div>
+            </div>
+            <span class="badge b-amber">ANPR</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Recent activity</div>
+        <div class="card">
+          <div class="access-item">
+            <div class="access-icon" style="background:var(--mx-green-dim);color:var(--mx-green)"><i class="ti ti-door-enter" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">David Tan — entered</div><div class="access-sub">Gate A · 10:41am today</div></div>
+          </div>
+          <div class="access-item">
+            <div class="access-icon" style="background:var(--mx-green-dim);color:var(--mx-green)"><i class="ti ti-receipt" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">June fee paid — $850</div><div class="access-sub">PayNow · 1 Jun · Ref: RG-0214-JUN25</div></div>
+          </div>
+          <div class="access-item">
+            <div class="access-icon" style="background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-tennisball" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">Tennis Court A booked</div><div class="access-sub">Sat 28 Jun · 10:00–11:00am</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Notices</div>
+        <div class="card" style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:36px;height:36px;background:var(--mx-amber-dim);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;color:var(--mx-amber)"><i class="ti ti-speakerphone" aria-hidden="true"></i></div>
+          <div><div style="font-weight:500;font-size:13px;color:var(--mx-white)">BBQ Pits — maintenance</div><div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">BBQ Pits 1–3 will be closed 25–27 Jun for deck resurfacing. Bookings during this period have been cancelled and refunded.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUESTS -->
+    <div class="view" id="view-guests">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Guest access</div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Active & upcoming</div>
+        <div class="card">
+          <div class="access-item">
+            <div class="access-icon qa-teal" style="width:40px;height:40px"><i class="ti ti-qrcode" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">David Tan Wei Ming</div><div class="access-sub">Today · 10am–11pm · QR active</div></div>
+            <button onclick="document.getElementById('qr-overlay').classList.add('open')" style="background:var(--mx-teal-dim);color:var(--mx-teal);border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">View QR</button>
+          </div>
+          <div class="access-item">
+            <div class="access-icon" style="width:40px;height:40px;background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-car" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name" style="font-family:monospace">SJK4521T</div><div class="access-sub">Vehicle pass · Today 8am–6pm</div></div>
+            <span class="badge b-amber">ANPR</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Invite a guest</div>
+        <div class="card">
+          <input class="inp" placeholder="Guest name" aria-label="Guest name">
+          <input class="inp" placeholder="Mobile number (+65 XXXX XXXX)" aria-label="Mobile">
+          <input class="inp" placeholder="Car plate (optional — for ANPR)" aria-label="Car plate">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">From</div><input class="inp" type="date" style="margin-bottom:0" aria-label="From"></div>
+            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Until</div><input class="inp" type="date" style="margin-bottom:0" aria-label="Until"></div>
+          </div>
+          <button class="pay-btn" style="margin-top:14px"><i class="ti ti-send" aria-hidden="true"></i> Send QR pass via SMS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="view" id="view-payment">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Pay management fee</div>
+      </div>
+      <div class="section">
+        <div class="card" style="text-align:center;padding:24px">
+          <div style="font-size:13px;color:var(--mx-secondary)">Unit #02-14 · July 2025</div>
+          <div style="font-size:42px;font-weight:700;color:var(--mx-white);margin:10px 0">$850</div>
+          <div style="font-size:12px;color:var(--mx-secondary);margin-bottom:24px">Due by 31 Jul 2025</div>
+
+          <div style="border:2px solid #D4537E;border-radius:var(--r-lg);padding:22px;background:#fff;margin-bottom:18px">
+            <div style="font-size:14px;font-weight:700;color:#D4537E;margin-bottom:14px">PayNow</div>
+            <svg width="150" height="150" viewBox="0 0 130 130" style="display:block;margin:0 auto 12px">
+              <rect width="130" height="130" fill="white"/>
+              <rect x="8" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
+              <rect x="14" y="14" width="32" height="32" fill="#444"/>
+              <rect x="78" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
+              <rect x="84" y="14" width="32" height="32" fill="#444"/>
+              <rect x="8" y="78" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
+              <rect x="14" y="84" width="32" height="32" fill="#444"/>
+              <rect x="60" y="60" width="10" height="10" fill="#444"/>
+              <rect x="76" y="60" width="8" height="8" fill="#444"/>
+              <rect x="90" y="60" width="12" height="10" fill="#444"/>
+              <rect x="106" y="60" width="8" height="8" fill="#444"/>
+              <rect x="60" y="76" width="8" height="8" fill="#444"/>
+              <rect x="78" y="76" width="12" height="12" fill="#444"/>
+              <rect x="98" y="76" width="8" height="8" fill="#444"/>
+              <rect x="60" y="92" width="10" height="10" fill="#444"/>
+              <rect x="76" y="92" width="8" height="8" fill="#444"/>
+              <rect x="90" y="90" width="12" height="12" fill="#444"/>
+              <rect x="60" y="108" width="8" height="10" fill="#444"/>
+              <rect x="78" y="108" width="10" height="10" fill="#444"/>
+              <rect x="94" y="108" width="8" height="10" fill="#444"/>
+              <rect x="108" y="108" width="14" height="10" fill="#444"/>
+            </svg>
+            <div style="font-size:13px;font-weight:700;color:#222">UEN: 202411234A</div>
+            <div style="font-size:11px;color:#666;margin-top:3px">Ref: RG-0214-JUL25</div>
+            <div style="font-size:10px;color:#999;margin-top:8px">Scan with DBS, OCBC, UOB, or any banking app</div>
+          </div>
+
+          <button class="btn-secondary"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit card — coming soon</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="section-label">Payment history</div>
+          <div class="card">
+            <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">Jun 2025 <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">1 Jun</span></div><strong>$850</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>
+            <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">May 2025 <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">1 May</span></div><strong>$850</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>
+            <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">Apr 2025 <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">2 Apr</span></div><strong>$850</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOOK FACILITY -->
+    <div class="view" id="view-book">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Book a facility</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Available today — 24 Jun</div>
+        <div class="booking-slot"><span class="slot-dot slot-avail"></span><div><div class="slot-name">Tennis Court A</div><div class="slot-detail">7am–9am, 11am–10pm available</div></div></div>
+        <div class="booking-slot"><span class="slot-dot slot-partial"></span><div><div class="slot-name">Tennis Court B</div><div class="slot-detail">7am–7pm available · 7pm–10pm booked</div></div></div>
+        <div class="booking-slot"><span class="slot-dot slot-avail"></span><div><div class="slot-name">Function Room A</div><div class="slot-detail">All day available</div></div></div>
+        <div class="booking-slot"><span class="slot-dot slot-busy"></span><div><div class="slot-name">Karaoke Room</div><div class="slot-detail">Fully booked today</div></div></div>
+        <div class="booking-slot"><span class="slot-dot slot-avail"></span><div><div class="slot-name">BBQ Pit 1</div><div class="slot-detail">Evening slot available · 6–10pm</div></div></div>
+
+        <div style="margin-top:14px">
+          <div class="section-label">My upcoming bookings</div>
+          <div class="card">
+            <div class="access-item">
+              <div class="access-icon" style="background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-tennisball" aria-hidden="true"></i></div>
+              <div class="access-info"><div class="access-name">Tennis Court A</div><div class="access-sub">Sat 28 Jun · 10:00–11:00am · 4 pax</div></div>
+              <button style="background:var(--mx-red-dim);color:var(--mx-red);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div class="view" id="view-vehicles">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">My vehicles</div>
+        <div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">2 of 2 slots used · upgrade for more</div>
+      </div>
+      <div class="section">
+        <div class="vehicle-card">
+          <div class="vehicle-icon"><i class="ti ti-car" aria-hidden="true"></i></div>
+          <div style="flex:1"><div class="vehicle-plate">SKA1234B</div><div class="vehicle-detail">Toyota Camry · Car</div></div>
+          <span class="badge b-green">Approved</span>
+        </div>
+        <div class="vehicle-card">
+          <div class="vehicle-icon"><i class="ti ti-car" aria-hidden="true"></i></div>
+          <div style="flex:1"><div class="vehicle-plate">SLB4567D</div><div class="vehicle-detail">Honda Jazz · Car</div></div>
+          <span class="badge b-green">Approved</span>
+        </div>
+        <button class="add-vehicle-btn" disabled style="opacity:.4;cursor:not-allowed"><i class="ti ti-lock" aria-hidden="true"></i> Max 2 vehicles reached</button>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="view" id="view-profile">
+      <div class="app-header" style="padding-bottom:14px">
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">My profile</div>
+      </div>
+      <div class="section">
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--mx-teal),var(--mx-blue));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 10px">RK</div>
+          <div style="font-size:18px;font-weight:600;color:var(--mx-white)">Rajesh Kumar</div>
+          <div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">Primary owner · Unit #02-14</div>
+        </div>
+        <div class="card">
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Email</div><div>rajesh.k@email.com</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Mobile</div><div>+65 9876 5432</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Unit</div><div>#02-14 · Riviera Gardens</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Status</div><div><span class="badge b-teal">Owner-occupied</span></div></div>
+        </div>
+
+        <div class="section-label" style="margin-top:16px">Household residents</div>
+        <div class="card">
+          <div class="access-item">
+            <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-heart" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">Preethi Kumar</div><div class="access-sub">Spouse · Access card issued</div></div>
+            <span class="badge b-green">Active</span>
+          </div>
+          <div class="access-item">
+            <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-mood-kid" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">Aryan Kumar</div><div class="access-sub">Child · Age 14</div></div>
+            <span class="badge b-green">Active</span>
+          </div>
+          <div class="access-item">
+            <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-mood-kid" aria-hidden="true"></i></div>
+            <div class="access-info"><div class="access-name">Aanya Kumar</div><div class="access-sub">Child · Age 10</div></div>
+            <span class="badge b-green">Active</span>
+          </div>
+        </div>
+        <button class="add-vehicle-btn" onclick="alert('Add resident form coming soon')"><i class="ti ti-plus" aria-hidden="true"></i> Add resident / sub-tenant</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" role="navigation" aria-label="App navigation">
+    <div class="bn-item active" id="bn-home" onclick="switchView('home')">
+      <i class="ti ti-home" aria-hidden="true"></i><span>Home</span>
+    </div>
+    <div class="bn-item notif-badge" id="bn-guests" onclick="switchView('guests')">
+      <i class="ti ti-qrcode" aria-hidden="true"></i><span>Guests</span>
+    </div>
+    <div class="bn-item" id="bn-book" onclick="switchView('book')">
+      <i class="ti ti-calendar" aria-hidden="true"></i><span>Facilities</span>
+    </div>
+    <div class="bn-item" id="bn-payment" onclick="switchView('payment')">
+      <i class="ti ti-cash" aria-hidden="true"></i><span>Payments</span>
+    </div>
+    <div class="bn-item" id="bn-profile" onclick="switchView('profile')">
+      <i class="ti ti-user" aria-hidden="true"></i><span>Profile</span>
+    </div>
+  </nav>
+</div>
+
+<!-- QR overlay -->
+<div class="qr-overlay" id="qr-overlay" onclick="this.classList.remove('open')" role="dialog" aria-label="Guest QR code">
+  <div class="qr-modal" onclick="event.stopPropagation()">
+    <div class="qr-title">David Tan Wei Ming</div>
+    <div class="qr-sub">Show this QR at Gate A · Valid until 11:00pm</div>
+    <svg width="180" height="180" viewBox="0 0 130 130" style="display:block;margin:0 auto">
+      <rect width="130" height="130" fill="white" rx="8"/>
+      <rect x="8" y="8" width="44" height="44" rx="3" fill="none" stroke="#00C9A7" stroke-width="3"/>
+      <rect x="14" y="14" width="32" height="32" rx="1" fill="#00C9A7"/>
+      <rect x="78" y="8" width="44" height="44" rx="3" fill="none" stroke="#00C9A7" stroke-width="3"/>
+      <rect x="84" y="14" width="32" height="32" rx="1" fill="#00C9A7"/>
+      <rect x="8" y="78" width="44" height="44" rx="3" fill="none" stroke="#00C9A7" stroke-width="3"/>
+      <rect x="14" y="84" width="32" height="32" rx="1" fill="#00C9A7"/>
+      <rect x="60" y="60" width="10" height="10" fill="#00C9A7"/>
+      <rect x="76" y="60" width="8" height="8" fill="#00C9A7"/>
+      <rect x="90" y="62" width="12" height="8" fill="#00C9A7"/>
+      <rect x="106" y="60" width="8" height="8" fill="#00C9A7"/>
+      <rect x="60" y="76" width="8" height="8" fill="#00C9A7"/>
+      <rect x="78" y="76" width="12" height="12" fill="#00C9A7"/>
+      <rect x="98" y="76" width="8" height="8" fill="#00C9A7"/>
+      <rect x="60" y="92" width="10" height="10" fill="#00C9A7"/>
+      <rect x="76" y="92" width="8" height="8" fill="#00C9A7"/>
+      <rect x="92" y="90" width="12" height="12" fill="#00C9A7"/>
+      <rect x="110" y="92" width="8" height="8" fill="#00C9A7"/>
+      <rect x="60" y="108" width="8" height="12" fill="#00C9A7"/>
+      <rect x="76" y="108" width="10" height="12" fill="#00C9A7"/>
+      <rect x="92" y="106" width="8" height="14" fill="#00C9A7"/>
+      <rect x="106" y="108" width="14" height="12" fill="#00C9A7"/>
+    </svg>
+    <div style="font-size:12px;color:#666;margin-top:10px">Invite ID: GX-240624-4821</div>
+    <button class="qr-close" onclick="document.getElementById('qr-overlay').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<script>
+const VIEW_NAV_MAP = {
+  home:'bn-home', guests:'bn-guests', book:'bn-book', payment:'bn-payment', profile:'bn-profile',
+  vehicles: null
+};
+
+let curView = 'home';
+function switchView(id) {
+  document.getElementById('view-' + curView).classList.remove('active');
+  const oldBn = VIEW_NAV_MAP[curView];
+  if (oldBn) document.getElementById(oldBn).classList.remove('active');
+
+  curView = id;
+  document.getElementById('view-' + id).classList.add('active');
+  document.getElementById('scrollable').scrollTop = 0;
+
+  const newBn = VIEW_NAV_MAP[id];
+  if (newBn) document.getElementById(newBn).classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+ManAgeX — Bulk Owner / Tenant Import Template
+==============================================
+
+INSTRUCTIONS
+------------
+1. Fill in the columns below. Do not change the column headers.
+2. For sub-tenants: fill Unit No, Sub-tenant Name, Relationship, and leave Owner fields blank.
+3. Accepted Relationship values: Owner | Spouse | Child | Domestic Worker | Sub-tenant (Renting) | Other
+4. For Occupancy Type: Owner-occupied | Renting out | Owner overseas
+5. Upload this file via ManAgeX → Owners & Tenants → Import Excel
+6. ManAgeX will email approval requests for each new record.
+
+COLUMNS (paste into Excel row 1)
+---------------------------------
+Unit No | Owner Name | Owner NRIC/FIN | Owner Email | Owner Mobile | Occupancy Type | Sub-tenant Name | Sub-tenant NRIC/FIN | Sub-tenant Email | Sub-tenant Mobile | Relationship | Monthly Fee (SGD) | Notes
+
+SAMPLE DATA
+-----------
+#02-14 | Rajesh Kumar | S1234567A | rajesh.k@email.com | 98765432 | Owner-occupied | | | | | Owner | 850 |
+#02-14 | | | | | | Preethi Kumar | S2345678B | preethi@email.com | 91234567 | Spouse | | |
+#04-22 | Lee Hwee Leng | S3456789C | hwee.leng@gmail.com | 82345678 | Renting out | Tan Kim Seng | S4567890D | tankimseng@gmail.com | 87654321 | Sub-tenant (Renting) | 850 |
+#07-08 | Noor Fadhilah | S5678901E | noor.f@proton.me | 93456789 | Owner-occupied | Sri Lakshmi | G1234567P | | 84567890 | Domestic Worker | 850 |
+
+VEHICLE IMPORT (separate sheet)
+---------------------------------
+Unit No | Plate Number | Vehicle Type | Make / Model | Owner Name
+
+#02-14 | SKA1234B | Car | Toyota Camry | Rajesh Kumar
+#02-14 | SLB4567D | Car | Honda Jazz | Preethi Kumar
+#07-08 | SJA2200E | Car | Nissan Altima | Noor Fadhilah
+
+NOTE: Log card images must be uploaded individually per vehicle after import.
