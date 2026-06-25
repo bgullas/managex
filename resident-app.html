@@ -119,6 +119,7 @@ body {
 .inp { width: 100%; padding: 11px 13px; background: var(--mx-panel); border: 1px solid var(--mx-border); border-radius: var(--r-sm); color: var(--mx-text); font-size: 14px; font-family: 'Inter', sans-serif; margin-bottom: 10px; }
 .inp:focus { outline: none; border-color: var(--mx-teal); }
 .inp::placeholder { color: var(--mx-muted); }
+.dt-inp { font-size: 14px; padding: 11px 13px; width: 100%; box-sizing: border-box; }
 .btn-secondary { width: 100%; padding: 12px; border-radius: var(--r-md); background: var(--mx-panel); color: var(--mx-text); font-size: 14px; font-weight: 500; border: 1px solid var(--mx-border); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
 /* Booking card */
@@ -231,10 +232,10 @@ body {
           <input class="inp" id="rg-name" placeholder="Guest name" aria-label="Guest name">
           <input class="inp" id="rg-phone" placeholder="Mobile number (+65 XXXX XXXX)" aria-label="Mobile">
           <input class="inp" id="rg-plate" placeholder="Car plate (optional — for ANPR)" aria-label="Car plate">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">From</div><input class="inp" id="rg-from" type="datetime-local" style="margin-bottom:0" aria-label="From"></div>
-            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Until</div><input class="inp" id="rg-to" type="datetime-local" style="margin-bottom:0" aria-label="Until"></div>
-          </div>
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">From</div>
+          <input class="inp dt-inp" id="rg-from" type="datetime-local" aria-label="From">
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Until</div>
+          <input class="inp dt-inp" id="rg-to" type="datetime-local" aria-label="Until">
           <button class="pay-btn" style="margin-top:14px" onclick="sendGuestInvite()"><i class="ti ti-send" aria-hidden="true"></i> Send QR pass via SMS</button>
         </div>
       </div>
