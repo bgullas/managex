@@ -1,0 +1,13 @@
+{
+  "name": "managex-paynow-sandbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sandbox/mock PayNow Corporate API + webhook backend for the ManAgeX demo. No real bank connection.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

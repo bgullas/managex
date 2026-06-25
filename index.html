@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="assets/app-state.js"></script>
 <script src="assets/app-utils.js"></script>
+<script src="assets/paynow-sandbox.js"></script>
 <style>
 :root {
   --mx-black: #0D0F12;
@@ -461,6 +462,21 @@ select.inp { cursor: pointer; }
   transition: all .15s;
 }
 .upload-zone:hover { border-color: var(--mx-teal); background: var(--mx-teal-dim); }
+
+.sandbox-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mx-border);
+  color: var(--mx-secondary);
+}
+.sandbox-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mx-muted); }
+.sandbox-status.online { color: var(--mx-green); border-color: var(--mx-green-dim); }
+.sandbox-status.online .dot { background: var(--mx-green); }
+.sandbox-status.offline { color: var(--mx-secondary); }
 
 .report-card {
   border: 1px solid var(--mx-border);
@@ -963,7 +979,10 @@ select.inp { cursor: pointer; }
   <div class="page" id="page-payments">
     <div class="grid2">
       <div class="card">
-        <div class="card-title"><i class="ti ti-cash" aria-hidden="true"></i> Pay management fee</div>
+        <div class="card-title" style="justify-content:space-between">
+          <span><i class="ti ti-cash" aria-hidden="true"></i> Pay management fee</span>
+          <span class="sandbox-status" id="ma-sandbox-status"><span class="dot"></span> Sandbox backend — checking…</span>
+        </div>
         <div style="text-align:center;margin-bottom:18px">
           <div style="font-size:12px;color:var(--mx-secondary);margin-bottom:4px">Unit #02-14 · June 2025</div>
           <div style="font-size:32px;font-weight:600;color:var(--mx-white)">$850.00</div>
@@ -978,8 +997,12 @@ select.inp { cursor: pointer; }
           <div id="ma-paynow-meta"></div>
           <div style="font-size:10px;color:#999;margin-top:6px">Scan with your banking app</div>
         </div>
+        <div id="ma-paynow-live-status" style="display:none;margin-top:10px;font-size:11px;text-align:center"></div>
+        <div style="margin-top:10px;text-align:center">
+          <button class="btn btn-sm" id="ma-gen-dynamic-qr-btn" onclick="generateDynamicQRForUnit()"><i class="ti ti-qrcode" aria-hidden="true"></i> Generate dynamic QR for this unit (sandbox)</button>
+        </div>
         <div style="margin-top:10px;font-size:10.5px;color:var(--mx-muted);text-align:center;line-height:1.5">
-          <i class="ti ti-info-circle" aria-hidden="true"></i> This QR is for display only — payment is confirmed manually by the MA via "Record payment". ManAgeX has no bank connection and cannot detect or acknowledge a real transfer. See <span class="mono">docs/architecture.md</span> for the production integration plan.
+          <i class="ti ti-info-circle" aria-hidden="true"></i> Without the sandbox backend running, this QR is display-only and "Record payment" is manual. With it running, the QR above is issued by the sandbox PayNow Corporate API and updates here live the instant a payment webhook is verified. See <span class="mono">docs/architecture.md</span> and <span class="mono">server/README.md</span>.
         </div>
         <div style="margin-top:14px;text-align:center">
           <button class="btn" style="width:100%;justify-content:center;color:var(--mx-muted)"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit / debit card — coming soon</button>
@@ -990,7 +1013,7 @@ select.inp { cursor: pointer; }
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Date</th><th>Period</th><th>Amount</th><th>Method</th><th>Reference</th></tr></thead>
-            <tbody>
+            <tbody id="ma-payment-history-tbody">
               <tr><td>1 Jun</td><td>Jun 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-JUN25</td></tr>
               <tr><td>1 May</td><td>May 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-MAY25</td></tr>
               <tr><td>2 Apr</td><td>Apr 2025</td><td>$850</td><td><span class="badge b-teal">PayNow</span></td><td class="mono" style="font-size:11px">RG-0214-APR25</td></tr>
@@ -2119,6 +2142,9 @@ function exportCurrentReportCSV() {
 /* ════════════════════════════════════════════════════════════════
    Payments page (MA portal — PayNow QR generation)
    ════════════════════════════════════════════════════════════════ */
+let maActiveIntentId = null;
+let maSandboxStreamConnected = false;
+
 function renderPaymentsPage() {
   const qrBox = document.getElementById('ma-paynow-qr');
   if (!qrBox) return;
@@ -2137,6 +2163,75 @@ function renderPaymentsPage() {
   tbody.innerHTML = s.payments.length ? s.payments.map(p => `
     <tr><td>${p.date}</td><td>${p.period}</td><td>$${p.amount}</td><td><span class="badge b-teal">${p.method}</span></td><td class="mono" style="font-size:11px">${p.ref}</td></tr>`).join('')
     : `<tr><td colspan="5">${emptyState('ti-history','No payment history','')}</td></tr>`;
+
+  refreshSandboxStatusBadge();
+  connectMaSandboxStream();
+}
+
+async function refreshSandboxStatusBadge() {
+  const el = document.getElementById('ma-sandbox-status');
+  if (!el || !window.MXPayNowSandbox) return;
+  const online = await MXPayNowSandbox.checkHealth();
+  el.classList.toggle('online', online);
+  el.classList.toggle('offline', !online);
+  el.innerHTML = online
+    ? '<span class="dot"></span> Sandbox backend online'
+    : '<span class="dot"></span> Sandbox backend offline — using client-side QR';
+  const genBtn = document.getElementById('ma-gen-dynamic-qr-btn');
+  if (genBtn) genBtn.disabled = !online;
+}
+
+function connectMaSandboxStream() {
+  if (maSandboxStreamConnected || !window.MXPayNowSandbox) return;
+  maSandboxStreamConnected = true;
+  MXPayNowSandbox.connectStream((intent) => {
+    if (intent.id !== maActiveIntentId) return;
+    showMaLiveStatus(intent);
+    recordSandboxPaymentInLocalState(intent);
+  });
+}
+
+async function generateDynamicQRForUnit() {
+  if (!window.MXPayNowSandbox || !(await MXPayNowSandbox.checkHealth())) {
+    MXUtil.toast('Sandbox backend offline — cannot issue a dynamic QR right now', 'error');
+    return;
+  }
+  try {
+    const intent = await MXPayNowSandbox.createIntent({ unit: '#02-14', period: 'Jun 2025', amount: 850 });
+    maActiveIntentId = intent.id;
+    document.getElementById('ma-paynow-qr').innerHTML = MXUtil.renderQR(intent.qrPayload, 130);
+    document.getElementById('ma-paynow-meta').innerHTML = `<div style="font-size:12px;font-weight:600;color:#333">Dynamic QR (sandbox)</div><div style="font-size:11px;color:#666;margin-top:3px">Reference: ${intent.reference}</div>`;
+    showMaLiveStatus({ status: 'pending' });
+    MXUtil.toast('Dynamic QR issued by sandbox backend — waiting for payment webhook', 'info');
+    connectMaSandboxStream();
+  } catch (e) {
+    MXUtil.toast('Failed to create payment intent', 'error');
+  }
+}
+
+function showMaLiveStatus(intent) {
+  const box = document.getElementById('ma-paynow-live-status');
+  if (!box) return;
+  box.style.display = 'block';
+  if (intent.status === 'paid') {
+    box.style.color = 'var(--mx-green)';
+    box.innerHTML = '<i class="ti ti-circle-check" aria-hidden="true"></i> Paid — confirmed by webhook' + (intent.paidAt ? ` at ${new Date(intent.paidAt).toLocaleTimeString('en-SG')}` : '');
+  } else {
+    box.style.color = 'var(--mx-amber)';
+    box.innerHTML = '<i class="ti ti-clock" aria-hidden="true"></i> Waiting for payment…';
+  }
+}
+
+function recordSandboxPaymentInLocalState(intent) {
+  MX.set(s => {
+    s.payments.unshift({
+      unit: intent.unit, date: new Date(intent.paidAt || Date.now()).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' }),
+      period: intent.period, amount: intent.amount, method: 'PayNow', ref: intent.reference,
+    });
+    const unitRec = s.units.find(x => x.unit === intent.unit);
+    if (unitRec) unitRec.feeStatus = 'Paid';
+  });
+  renderPaymentsPage();
 }
 
 /* ════════════════════════════════════════════════════════════════

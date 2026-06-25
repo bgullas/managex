@@ -99,7 +99,8 @@ managex/
 ├── docs/
 │   ├── architecture.md     ← This file
 │   └── api-anpr.md         ← ANPR REST API specification
-└── assets/                 ← Logos, icons (future)
+├── assets/                 ← Shared client JS/CSS (app-state, app-utils, paynow-sandbox)
+└── server/                 ← Sandbox PayNow Corporate API + webhook backend (Node, mocked bank)
 ```
 
 ## Demo vs production differences
@@ -109,7 +110,7 @@ managex/
 | Data | Hardcoded sample data | PostgreSQL RDS |
 | Auth | None | Cognito + JWT |
 | Files | Not functional | S3 + presigned URLs |
-| PayNow | Static QR display | PayNow API (UEN push) |
+| PayNow | Sandboxed mock Corporate API + webhook (`server/`), falls back to static/generated QR if backend offline | Real bank Corporate API or gateway SDK |
 | SMS | Not functional | Twilio |
 | Email | Not functional | SendGrid |
 | ANPR API | Documented spec | Lambda + API Gateway |
@@ -127,35 +128,42 @@ managex/
 - **Email:** SES + SendGrid (statements, reminders)
 - **Monitoring:** CloudWatch + Sentry
 
-## Real PayNow payment integration (not implemented in the demo)
+## PayNow payment integration — sandbox implementation
 
-The demo's Payments page only **displays** a PayNow QR (either generated from a UEN/amount/reference, or a static image the MA uploads in Settings). Scanning it opens the resident's own banking app to initiate a transfer — but nothing reports back to ManAgeX. There is no backend, so "Record payment" today is a manual, trust-based action by the MA. Below is what production would need to actually confirm and acknowledge a transaction.
+A sandboxed, mocked version of a real PayNow Corporate API + webhook flow now exists in `server/` and is wired into both `index.html` (MA portal) and `resident-app.html`. This replaces the "not implemented" gap described in earlier revisions of this doc with a real, runnable architecture — minus a real bank, since this project has no production banking credentials.
 
-### Why a static/generated QR can't acknowledge payment
-PayNow has no general-purpose merchant webhook. The only ways to get a real-time, programmatic payment confirmation are:
+### What's real vs what's mocked
 
-1. **Bank PayNow Corporate API** — DBS, OCBC and UOB each expose a corporate API that lets a registered business generate a **dynamic** QR per transaction (amount + unique reference baked in) and receive a callback/webhook when it's paid. Requires a corporate bank account, API onboarding, and usually a annual/per-transaction fee.
-2. **Payment gateway with PayNow support** — HitPay, Xfers/StraitsX, NETSPay, or 2C2P sit in front of the bank APIs, handle KYC/compliance, generate the dynamic QR, and fire a webhook to your server on payment. This is the realistic path for a multi-property SaaS — it avoids negotiating bank API access per managing agent's bank.
+**Real** (these are genuine implementations of the security/architecture patterns a production integration needs, not stand-ins):
+- **HMAC-SHA256 signature verification** on `POST /v1/webhooks/payment` (`server/index.js` `handleWebhook`, using `mockBank.verifySignature`) — an unsigned or incorrectly-signed call is rejected with `401`, never trusted.
+- **Idempotency** on `transactionId` — a webhook retried or duplicated by the bank does not double-credit a unit (`handleWebhook` short-circuits if the intent is already `paid`).
+- **Intent/webhook separation** — the QR/reference is issued via `POST /v1/payments/intent` up front; the `paid` state can only ever be set by a verified webhook call, never directly by the client.
+- **Server-Sent Events push** (`GET /v1/payments/stream`) — the MA portal flips a payment to "paid" live, without polling or a manual refresh, the instant the webhook is processed.
+- The EMVCo SGQR payload construction (TLV + CRC16-CCITT) is replicated server-side in `server/mockBank.js` so the backend, not the browser, is authoritative for the QR string returned to clients.
 
-Stripe does **not** support PayNow as of this writing — it is not a viable option for this market.
+**Mocked** (there is no real bank or payer in this sandbox):
+- `mockBank.createDynamicQR()` invents the reference/transaction ID and builds the QR locally instead of calling a real bank/gateway API.
+- `mockBank.simulateBankWebhookCall()` stands in for the bank's own webhook dispatcher — in production you'd never call this; the bank/gateway calls your webhook URL for you.
+- `POST /v1/sandbox/simulate-payment/:id` — since there's no real bank for a resident to scan and pay with, this sandbox-only endpoint lets a human stand in for "I just paid in my banking app," triggering the same signature-verified webhook path a real bank call would hit.
 
-### Required backend flow
-```
-1. MA portal calls  POST /v1/payments/intent  { unit_id, amount, period }
-2. Backend calls gateway API → creates a dynamic QR tied to a unique reference
-3. QR returned to client, rendered (replaces the client-side generated/static QR)
-4. Resident scans, pays via their banking app
-5. Gateway → POST /v1/webhooks/payment  (signed payload: reference, status, amount, txn_id)
-6. Backend verifies webhook signature, marks the unit's fee record as paid in PostgreSQL
-7. Backend pushes a real-time update to the MA portal (WebSocket/SSE) and resident app
-8. Receipt emailed via SES/SendGrid
-```
+### Exactly what to swap for a real integration
+To go live, replace these functions in `server/mockBank.js`:
+1. **`createDynamicQR({ uen, amount, unit, period })`** — call the real bank Corporate API (DBS IDEAL RAPID, OCBC Velocity API, UOB BIBPlus API) or a gateway SDK (HitPay, Xfers/StraitsX, 2C2P) and use whatever QR payload/reference *they* return, instead of building it locally.
+2. **`simulateBankWebhookCall()`** — delete entirely; instead configure your bank/gateway dashboard with your deployed `POST /v1/webhooks/payment` URL as the webhook target.
 
-### Security/compliance notes for this flow
-- Webhook endpoint must verify the gateway's signature (HMAC) — never trust an unauthenticated "payment succeeded" call.
-- Idempotency: a webhook can be retried/duplicated; dedupe on `txn_id` before crediting a unit.
+Keep `verifySignature`/`signPayload` as the pattern, but use whatever shared-secret/HMAC scheme the real provider issues (env var `WEBHOOK_SECRET` already models this). See `server/README.md` for the full breakdown and how to run the sandbox locally.
+
+### GitHub Pages limitation
+`https://bgullas.github.io/managex/` is static HTTPS hosting and cannot run the Node backend in `server/`. To see the sandbox flow working, run `node server/index.js` locally and view the frontend via `localhost` rather than the GitHub Pages URL — both index.html and resident-app.html show a "Sandbox backend online/offline" indicator near the Payments UI and fall back to the existing pure client-side QR generation whenever the backend isn't reachable, so the deployed demo keeps working exactly as before for anyone without the local server running. Making this reachable from the live GitHub Pages site for everyone would require deploying the backend with HTTPS (Render/Fly/AWS) — not done here; that's a separate, explicit decision.
+
+### Background: why a static/generated QR alone can't acknowledge payment
+PayNow has no general-purpose merchant webhook of its own. The only ways to get a real-time, programmatic payment confirmation are a bank's Corporate API (as mocked above) or a payment gateway with PayNow support sitting in front of it (HitPay, Xfers/StraitsX, NETSPay, 2C2P). Stripe does **not** support PayNow as of this writing.
+
+### Security/compliance notes
+- Webhook endpoint must verify the provider's signature (HMAC) — never trust an unauthenticated "payment succeeded" call. (Implemented in the sandbox.)
+- Idempotency: a webhook can be retried/duplicated; dedupe on `transactionId` before crediting a unit. (Implemented in the sandbox.)
 - PCI/MAS compliance is the gateway's responsibility, not ManAgeX's, as long as ManAgeX never touches card/bank credentials directly — keep it that way.
-- Reconciliation: still run a daily settlement reconciliation job against the gateway's transaction export, since webhooks can occasionally be missed.
+- Reconciliation: still run a daily settlement reconciliation job against the gateway's transaction export in production, since webhooks can occasionally be missed.
 
 ## GitHub Pages deployment
 

@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="assets/app-state.js"></script>
 <script src="assets/app-utils.js"></script>
+<script src="assets/paynow-sandbox.js"></script>
 <style>
 :root {
   --mx-bg: #0D0F12;
@@ -97,6 +98,10 @@ body {
 /* Guest / access items */
 .access-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--mx-border)60; }
 .access-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.sandbox-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--mx-border); color: var(--mx-secondary); }
+.sandbox-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mx-muted); }
+.sandbox-status.online { color: var(--mx-green); border-color: var(--mx-green-dim,#34C75920); }
 .access-icon { width: 40px; height: 40px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .access-info { flex: 1; }
 .access-name { font-weight: 500; font-size: 14px; color: var(--mx-white); }
@@ -242,6 +247,7 @@ body {
           <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
         </div>
         <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Pay management fee</div>
+        <div style="margin-top:8px"><span class="sandbox-status" id="rs-sandbox-status"><span class="dot"></span> Sandbox backend — checking…</span></div>
       </div>
       <div class="section">
         <div class="card" style="text-align:center;padding:24px">
@@ -252,12 +258,16 @@ body {
           <div style="border:2px solid #D4537E;border-radius:var(--r-lg);padding:22px;background:#fff;margin-bottom:18px">
             <div style="font-size:14px;font-weight:700;color:#D4537E;margin-bottom:14px">PayNow</div>
             <div id="pay-qr-box" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-            <div style="font-size:13px;font-weight:700;color:#222">UEN: 202411234A</div>
+            <div style="font-size:13px;font-weight:700;color:#222" id="pay-uen">UEN: 202411234A</div>
             <div style="font-size:11px;color:#666;margin-top:3px" id="pay-ref"></div>
             <div style="font-size:10px;color:#999;margin-top:8px">Scan with DBS, OCBC, UOB, or any banking app</div>
           </div>
 
-          <button class="pay-btn" onclick="markFeePaid()"><i class="ti ti-check" aria-hidden="true"></i> Mark as paid (simulate)</button>
+          <div id="rs-pay-status" style="display:none;margin-bottom:12px;font-size:12px"></div>
+
+          <button class="pay-btn" id="rs-pay-now-btn" onclick="payNowSandboxFlow()"><i class="ti ti-qrcode" aria-hidden="true"></i> Pay now</button>
+          <button class="pay-btn" id="rs-simulate-btn" style="display:none;margin-top:10px;background:var(--mx-amber)" onclick="simulateSandboxPayment()"><i class="ti ti-device-mobile" aria-hidden="true"></i> Sandbox: simulate completing payment in banking app</button>
+          <button class="pay-btn" id="rs-mark-paid-btn" onclick="markFeePaid()" style="margin-top:10px"><i class="ti ti-check" aria-hidden="true"></i> Mark as paid (simulate, no backend)</button>
           <button class="btn-secondary" style="margin-top:10px"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit card — coming soon</button>
         </div>
 
@@ -513,6 +523,10 @@ function sendGuestInvite() {
 /* ════════════════════════════════════════════════════════════════
    PAYMENT
    ════════════════════════════════════════════════════════════════ */
+let rsActiveIntent = null;
+let rsStopPolling = null;
+let rsSandboxOnline = false;
+
 function renderPaymentView() {
   const s = MX.get();
   const u = unitInfo();
@@ -522,12 +536,94 @@ function renderPaymentView() {
   const ref = `RG-${u.unit.replace('#','')}-${nextMonthAbbr.toUpperCase()}${String(new Date().getFullYear()).slice(2)}`;
   const payload = MXUtil.buildPayNowPayload('202411234A', u.monthlyFee, ref);
   document.getElementById('pay-qr-box').innerHTML = MXUtil.renderQR(payload, 150);
+  document.getElementById('pay-uen').textContent = 'UEN: 202411234A';
   document.getElementById('pay-ref').textContent = `Ref: ${ref}`;
+  document.getElementById('rs-simulate-btn').style.display = 'none';
+  document.getElementById('rs-pay-status').style.display = 'none';
+  rsActiveIntent = null;
+  if (rsStopPolling) { rsStopPolling(); rsStopPolling = null; }
 
   const history = s.payments.filter(p => p.unit === u.unit);
   document.getElementById('pay-history-list').innerHTML = history.length ? history.map(p => `
     <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">${p.period} <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">${p.date}</span></div><strong>$${p.amount}</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>`).join('')
     : emptyStateHtml('ti-history','No payment history','');
+
+  refreshResidentSandboxStatus();
+}
+
+async function refreshResidentSandboxStatus() {
+  const el = document.getElementById('rs-sandbox-status');
+  if (!el || !window.MXPayNowSandbox) return;
+  rsSandboxOnline = await MXPayNowSandbox.checkHealth();
+  el.classList.toggle('online', rsSandboxOnline);
+  el.innerHTML = rsSandboxOnline
+    ? '<span class="dot"></span> Sandbox backend online'
+    : '<span class="dot"></span> Sandbox backend offline — using client-side QR';
+}
+
+async function payNowSandboxFlow() {
+  const u = unitInfo();
+  if (!window.MXPayNowSandbox || !(await MXPayNowSandbox.checkHealth())) {
+    MXUtil.toast('Sandbox backend offline — showing client-side QR only', 'info');
+    return;
+  }
+  try {
+    const period = `${new Date().toLocaleString('en-SG',{month:'long'})} ${new Date().getFullYear()}`;
+    const intent = await MXPayNowSandbox.createIntent({ unit: u.unit, period, amount: u.monthlyFee });
+    rsActiveIntent = intent.id;
+    document.getElementById('pay-qr-box').innerHTML = MXUtil.renderQR(intent.qrPayload, 150);
+    document.getElementById('pay-uen').textContent = 'Dynamic QR (sandbox)';
+    document.getElementById('pay-ref').textContent = `Ref: ${intent.reference}`;
+    document.getElementById('rs-simulate-btn').style.display = 'block';
+    showResidentPayStatus('pending');
+    MXUtil.toast('Dynamic QR issued — waiting for payment confirmation', 'info');
+
+    if (rsStopPolling) rsStopPolling();
+    rsStopPolling = MXPayNowSandbox.pollIntent(intent.id, (updated) => {
+      if (updated.status === 'paid') {
+        showResidentPayStatus('paid', updated);
+        recordResidentSandboxPayment(updated);
+      }
+    });
+  } catch (e) {
+    MXUtil.toast('Could not create payment intent', 'error');
+  }
+}
+
+async function simulateSandboxPayment() {
+  if (!rsActiveIntent) return;
+  try {
+    await MXPayNowSandbox.simulatePayment(rsActiveIntent);
+    MXUtil.toast('Simulated bank webhook sent — waiting for confirmation', 'info');
+  } catch (e) {
+    MXUtil.toast('Simulated payment failed', 'error');
+  }
+}
+
+function showResidentPayStatus(status, intent) {
+  const box = document.getElementById('rs-pay-status');
+  box.style.display = 'block';
+  if (status === 'paid') {
+    box.style.color = 'var(--mx-green)';
+    box.innerHTML = '<i class="ti ti-circle-check" aria-hidden="true"></i> Paid ✓ — confirmed by webhook';
+    document.getElementById('rs-simulate-btn').style.display = 'none';
+  } else {
+    box.style.color = 'var(--mx-amber)';
+    box.innerHTML = '<i class="ti ti-clock" aria-hidden="true"></i> Waiting for payment…';
+  }
+}
+
+function recordResidentSandboxPayment(intent) {
+  const u = unitInfo();
+  MX.set(s => {
+    s.payments.unshift({ unit: intent.unit, date: new Date(intent.paidAt || Date.now()).toLocaleDateString('en-SG',{day:'numeric',month:'short'}), period: intent.period, amount: intent.amount, method: 'PayNow', ref: intent.reference });
+    const unitRec = s.units.find(x => x.unit === intent.unit);
+    if (unitRec) unitRec.feeStatus = 'Paid';
+    if (!s.feeRecords[u.unit]) s.feeRecords[u.unit] = {};
+    s.feeRecords[u.unit][MONTHS[new Date().getMonth()]] = 'paid';
+  });
+  MXUtil.toast('Payment confirmed — receipt sent by email', 'success');
+  renderPaymentView();
 }
 
 function markFeePaid() {
