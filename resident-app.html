@@ -471,7 +471,20 @@ function emptyStateHtml(icon, title, sub) {
 /* ════════════════════════════════════════════════════════════════
    GUESTS
    ════════════════════════════════════════════════════════════════ */
+function defaultDatetimeLocal(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 function renderGuestsView() {
+  const fromEl = document.getElementById('rg-from');
+  const toEl = document.getElementById('rg-to');
+  if (fromEl && !fromEl.value) {
+    const from = new Date(Date.now() + 30 * 60000);
+    from.setMinutes(Math.ceil(from.getMinutes() / 15) * 15, 0, 0);
+    const to = new Date(from.getTime() + 3 * 3600000);
+    fromEl.value = defaultDatetimeLocal(from);
+    toEl.value = defaultDatetimeLocal(to);
+  }
   const s = MX.get();
   const guests = s.guests.filter(g => g.unit === RESIDENT_UNIT && g.status !== 'Departed');
   document.getElementById('guests-active-list').innerHTML = guests.length ? guests.map(g => `
@@ -500,12 +513,14 @@ function sendGuestInvite() {
   const fromEl = document.getElementById('rg-from');
   const toEl = document.getElementById('rg-to');
   MXUtil.clearFieldError(nameEl); MXUtil.clearFieldError(phoneEl); MXUtil.clearFieldError(plateEl);
+  MXUtil.clearFieldError(fromEl); MXUtil.clearFieldError(toEl);
 
   if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Guest name required'); return; }
   if (phoneEl.value && !MXUtil.validSGMobile(phoneEl.value)) { MXUtil.showFieldError(phoneEl, 'Use format +65 XXXX XXXX'); return; }
   if (plateEl.value && !MXUtil.validPlate(plateEl.value)) { MXUtil.showFieldError(plateEl, 'Invalid plate format'); return; }
-  if (!fromEl.value || !toEl.value) { MXUtil.toast('Set valid from/until times', 'error'); return; }
-  if (new Date(toEl.value) <= new Date(fromEl.value)) { MXUtil.toast('Until time must be after from time', 'error'); return; }
+  if (!fromEl.value) { MXUtil.showFieldError(fromEl, 'Tap to finish setting this date & time'); return; }
+  if (!toEl.value) { MXUtil.showFieldError(toEl, 'Tap to finish setting this date & time'); return; }
+  if (new Date(toEl.value) <= new Date(fromEl.value)) { MXUtil.showFieldError(toEl, 'Must be after the "From" time'); return; }
 
   const qrId = 'GX-' + Date.now().toString(36).toUpperCase();
   MX.set(s => {
