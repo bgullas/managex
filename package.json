@@ -1,0 +1,9 @@
+{
+  "name": "managex-netlify-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Netlify Functions deployment of the ManAgeX PayNow sandbox backend.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

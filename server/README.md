@@ -76,22 +76,44 @@ Environment variables that would hold real credentials in a live deployment:
 - Whatever API key/client ID the bank or gateway issues for `createDynamicQR` to call out
   with (not present in this sandbox since there's nothing real to call).
 
-## GitHub Pages limitation
+## Deployed backend (production)
 
-The deployed demo at `https://bgullas.github.io/managex/` is static HTTPS hosting and
-cannot run this Node backend. To see the sandbox flow working:
+The live GitHub Pages demo at `https://bgullas.github.io/managex/` now talks to a real
+deployed backend: **`https://managex-paynow-sandbox.netlify.app`**, running as Netlify
+Functions (see `netlify/functions/`) backed by Netlify Blobs instead of the local JSON file
+store. This is the same sandbox/mock logic — no real bank, no real money — just reachable
+over HTTPS for anyone viewing the public demo, with no local server required.
 
-- Run `node server/index.js` (or `npm start`) locally, **and**
-- View the frontend via `http://localhost/...` (e.g. open `index.html`/`resident-app.html`
-  through a local file server or `file://`) rather than the GitHub Pages URL — the deployed
-  HTTPS page cannot make plain-HTTP calls to `localhost:8787` from most browsers' mixed
-  content rules in some configurations, and even where it can, nobody else viewing the
-  public demo has your local server running.
-- To make this reachable from the live GitHub Pages site for everyone, the backend would
-  need to be deployed somewhere with HTTPS (Render, Fly.io, AWS, etc.) — this has **not**
-  been done; provisioning real cloud hosting is out of scope for this sandbox and requires
-  explicit approval first.
+The deployed version has one behavioral difference: Netlify Functions can't hold a
+persistent connection, so there is no Server-Sent Events stream in production. The frontend
+(`assets/paynow-sandbox.js`) detects this automatically — `window.location.hostname` decides
+whether to use `http://localhost:8787` (local dev, full SSE support) or the deployed Netlify
+URL (production, polling). No manual toggle is needed; the same frontend code works against
+either backend.
+
+The bank-simulation/SGQR/HMAC logic itself lives in `shared/mockBank.js`, required by both
+`server/index.js` (this local Node server) and the Netlify functions, so the two deployments
+can't drift out of sync. The Netlify functions use `shared/blobStore.js` (Netlify Blobs) in
+place of `server/store.js` (the local JSON file), since serverless functions have no shared
+filesystem across invocations.
+
+## Local dev vs production summary
+
+| | Local (`server/`) | Production (`netlify/functions/`) |
+|---|---|---|
+| Run with | `node server/index.js` | Deployed automatically via Netlify |
+| Storage | `server/store.js` (JSON file) | `shared/blobStore.js` (Netlify Blobs) |
+| Real-time update | SSE (`GET /v1/payments/stream`) | Polling `GET /v1/payments/intent/:id` every 2-3s |
+| Base URL | `http://localhost:8787` | `https://managex-paynow-sandbox.netlify.app/api` |
+
+## GitHub Pages limitation (historical / local-only caveat)
+
+`https://bgullas.github.io/managex/` is static HTTPS hosting and cannot run this Node
+backend directly — that's why the Netlify Functions deployment above exists. Running
+`node server/index.js` locally is still useful for local development/testing with full SSE
+support; point the frontend at it by viewing `index.html`/`resident-app.html` via
+`http://localhost/...` rather than the GitHub Pages URL.
 
 The frontend's "Sandbox backend" indicator pings `GET /v1/health` and falls back to the
-existing pure client-side QR generation whenever the backend isn't reachable, so the rest
-of the demo keeps working with no backend running at all.
+existing pure client-side QR generation whenever neither backend is reachable, so the rest
+of the demo keeps working even with no backend running at all.

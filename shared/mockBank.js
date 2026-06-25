@@ -1,7 +1,10 @@
 /* Mocked bank PayNow Corporate API.
    In production, createDynamicQR() and simulateBankWebhookCall() would be replaced by
    real calls into a bank Corporate API (DBS IDEAL RAPID, OCBC Velocity API, UOB BIBPlus API)
-   or a gateway SDK (HitPay, StraitsX/Xfers, 2C2P) — see server/README.md. */
+   or a gateway SDK (HitPay, StraitsX/Xfers, 2C2P) — see server/README.md.
+
+   Shared by server/index.js (local dev, Node http server) and netlify/functions/* (deployed
+   serverless) so the bank-simulation/SGQR/HMAC logic has one source of truth. */
 const crypto = require('crypto');
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || (() => {

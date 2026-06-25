@@ -2,7 +2,7 @@
    connection — see server/README.md for what's real vs mocked and how to go live. */
 const http = require('http');
 const crypto = require('crypto');
-const mockBank = require('./mockBank');
+const mockBank = require('../shared/mockBank');
 const store = require('./store');
 
 const PORT = process.env.PORT || 8787;

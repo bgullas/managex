@@ -100,7 +100,10 @@ managex/
 │   ├── architecture.md     ← This file
 │   └── api-anpr.md         ← ANPR REST API specification
 ├── assets/                 ← Shared client JS/CSS (app-state, app-utils, paynow-sandbox)
-└── server/                 ← Sandbox PayNow Corporate API + webhook backend (Node, mocked bank)
+├── server/                 ← Sandbox PayNow backend for LOCAL DEV (Node http server, SSE, JSON file store)
+├── netlify/functions/      ← Same sandbox backend DEPLOYED (Netlify Functions, polling, Netlify Blobs)
+├── shared/                 ← mockBank.js (SGQR/HMAC), blobStore.js, cors.js — used by both of the above
+└── netlify.toml            ← Netlify Functions + /api/... redirect config (does not affect GitHub Pages)
 ```
 
 ## Demo vs production differences
@@ -110,7 +113,7 @@ managex/
 | Data | Hardcoded sample data | PostgreSQL RDS |
 | Auth | None | Cognito + JWT |
 | Files | Not functional | S3 + presigned URLs |
-| PayNow | Sandboxed mock Corporate API + webhook (`server/`), falls back to static/generated QR if backend offline | Real bank Corporate API or gateway SDK |
+| PayNow | Sandboxed mock Corporate API + webhook, deployed live at Netlify Functions + Blobs (`netlify/functions/`, polling-based) for the public demo, plus `server/` for local dev (SSE-based); falls back to static/generated QR if both are offline | Real bank Corporate API or gateway SDK |
 | SMS | Not functional | Twilio |
 | Email | Not functional | SendGrid |
 | ANPR API | Documented spec | Lambda + API Gateway |
@@ -153,8 +156,12 @@ To go live, replace these functions in `server/mockBank.js`:
 
 Keep `verifySignature`/`signPayload` as the pattern, but use whatever shared-secret/HMAC scheme the real provider issues (env var `WEBHOOK_SECRET` already models this). See `server/README.md` for the full breakdown and how to run the sandbox locally.
 
-### GitHub Pages limitation
-`https://bgullas.github.io/managex/` is static HTTPS hosting and cannot run the Node backend in `server/`. To see the sandbox flow working, run `node server/index.js` locally and view the frontend via `localhost` rather than the GitHub Pages URL — both index.html and resident-app.html show a "Sandbox backend online/offline" indicator near the Payments UI and fall back to the existing pure client-side QR generation whenever the backend isn't reachable, so the deployed demo keeps working exactly as before for anyone without the local server running. Making this reachable from the live GitHub Pages site for everyone would require deploying the backend with HTTPS (Render/Fly/AWS) — not done here; that's a separate, explicit decision.
+### Deployment: Netlify Functions + Blobs (production)
+The sandbox backend is deployed at **`https://managex-paynow-sandbox.netlify.app`** as Netlify Functions (`netlify/functions/`), and the live GitHub Pages demo talks to it directly over HTTPS — no local server required. The bank-simulation/SGQR/HMAC logic lives in `shared/mockBank.js`, shared by both `server/index.js` (local dev) and the Netlify functions, so the two never drift apart. Persistent storage on the deployed side uses Netlify Blobs (`shared/blobStore.js`, via `@netlify/blobs`) instead of the local JSON file (`server/store.js`), since serverless functions have no shared filesystem across invocations.
+
+Netlify Functions cannot hold a persistent connection, so there is no SSE stream in production — `assets/paynow-sandbox.js` detects this automatically (based on `window.location.hostname`) and polls `GET /v1/payments/intent/:id` every 2-3 seconds instead, with no manual toggle required. Local dev (`node server/index.js`) keeps full SSE support unchanged. `netlify.toml` at the repo root configures the functions directory and `/api/v1/...` redirects to the underlying `/.netlify/functions/...` URLs; it does not touch how the static GitHub Pages frontend is built or deployed, which remains entirely separate and unchanged.
+
+CORS: every Netlify function sets `Access-Control-Allow-Origin` (and answers `OPTIONS` preflight itself) so the browser on `https://bgullas.github.io` can call the functions despite being on a different origin.
 
 ### Background: why a static/generated QR alone can't acknowledge payment
 PayNow has no general-purpose merchant webhook of its own. The only ways to get a real-time, programmatic payment confirmation are a bank's Corporate API (as mocked above) or a payment gateway with PayNow support sitting in front of it (HitPay, Xfers/StraitsX, NETSPay, 2C2P). Stripe does **not** support PayNow as of this writing.

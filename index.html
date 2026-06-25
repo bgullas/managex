@@ -2204,6 +2204,7 @@ async function generateDynamicQRForUnit() {
     showMaLiveStatus({ status: 'pending' });
     MXUtil.toast('Dynamic QR issued by sandbox backend — waiting for payment webhook', 'info');
     connectMaSandboxStream();
+    MXPayNowSandbox.watchIntent(intent.id);
   } catch (e) {
     MXUtil.toast('Failed to create payment intent', 'error');
   }

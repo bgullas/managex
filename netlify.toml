@@ -1,0 +1,28 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/v1/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/v1/payments/intent"
+  to = "/.netlify/functions/payments-intent-create"
+  status = 200
+
+[[redirects]]
+  from = "/api/v1/payments/intent/*"
+  to = "/.netlify/functions/payments-intent-get"
+  status = 200
+
+[[redirects]]
+  from = "/api/v1/webhooks/payment"
+  to = "/.netlify/functions/webhooks-payment"
+  status = 200
+
+[[redirects]]
+  from = "/api/v1/sandbox/simulate-payment/*"
+  to = "/.netlify/functions/sandbox-simulate-payment"
+  status = 200
