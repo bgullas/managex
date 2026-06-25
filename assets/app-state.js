@@ -126,6 +126,13 @@
         { id: 'v4', name: 'GreenScape Landscaping', category: 'Landscaping', contact: '+65 6555 7788', contractExpiry: '2025-12-01' },
         { id: 'v5', name: 'SecureGuard Services', category: 'Security', contact: '+65 6555 3322', contractExpiry: '2025-08-05' },
       ],
+      paynow: {
+        mode: 'generated',
+        uen: '202411234A',
+        refPrefix: 'RG',
+        uploadedQrDataUrl: null,
+        uploadedQrName: null,
+      },
     };
   }
 

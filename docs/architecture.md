@@ -127,6 +127,36 @@ managex/
 - **Email:** SES + SendGrid (statements, reminders)
 - **Monitoring:** CloudWatch + Sentry
 
+## Real PayNow payment integration (not implemented in the demo)
+
+The demo's Payments page only **displays** a PayNow QR (either generated from a UEN/amount/reference, or a static image the MA uploads in Settings). Scanning it opens the resident's own banking app to initiate a transfer — but nothing reports back to ManAgeX. There is no backend, so "Record payment" today is a manual, trust-based action by the MA. Below is what production would need to actually confirm and acknowledge a transaction.
+
+### Why a static/generated QR can't acknowledge payment
+PayNow has no general-purpose merchant webhook. The only ways to get a real-time, programmatic payment confirmation are:
+
+1. **Bank PayNow Corporate API** — DBS, OCBC and UOB each expose a corporate API that lets a registered business generate a **dynamic** QR per transaction (amount + unique reference baked in) and receive a callback/webhook when it's paid. Requires a corporate bank account, API onboarding, and usually a annual/per-transaction fee.
+2. **Payment gateway with PayNow support** — HitPay, Xfers/StraitsX, NETSPay, or 2C2P sit in front of the bank APIs, handle KYC/compliance, generate the dynamic QR, and fire a webhook to your server on payment. This is the realistic path for a multi-property SaaS — it avoids negotiating bank API access per managing agent's bank.
+
+Stripe does **not** support PayNow as of this writing — it is not a viable option for this market.
+
+### Required backend flow
+```
+1. MA portal calls  POST /v1/payments/intent  { unit_id, amount, period }
+2. Backend calls gateway API → creates a dynamic QR tied to a unique reference
+3. QR returned to client, rendered (replaces the client-side generated/static QR)
+4. Resident scans, pays via their banking app
+5. Gateway → POST /v1/webhooks/payment  (signed payload: reference, status, amount, txn_id)
+6. Backend verifies webhook signature, marks the unit's fee record as paid in PostgreSQL
+7. Backend pushes a real-time update to the MA portal (WebSocket/SSE) and resident app
+8. Receipt emailed via SES/SendGrid
+```
+
+### Security/compliance notes for this flow
+- Webhook endpoint must verify the gateway's signature (HMAC) — never trust an unauthenticated "payment succeeded" call.
+- Idempotency: a webhook can be retried/duplicated; dedupe on `txn_id` before crediting a unit.
+- PCI/MAS compliance is the gateway's responsibility, not ManAgeX's, as long as ManAgeX never touches card/bank credentials directly — keep it that way.
+- Reconciliation: still run a daily settlement reconciliation job against the gateway's transaction export, since webhooks can occasionally be missed.
+
 ## GitHub Pages deployment
 
 The demo runs entirely in the browser with no build step.

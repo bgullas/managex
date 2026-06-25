@@ -974,34 +974,12 @@ select.inp { cursor: pointer; }
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#D4537E"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
             PayNow
           </div>
-          <svg width="130" height="130" viewBox="0 0 130 130" style="display:block;margin:0 auto 10px">
-            <rect width="130" height="130" fill="white"/>
-            <rect x="8" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
-            <rect x="14" y="14" width="32" height="32" fill="#333"/>
-            <rect x="78" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
-            <rect x="84" y="14" width="32" height="32" fill="#333"/>
-            <rect x="8" y="78" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
-            <rect x="14" y="84" width="32" height="32" fill="#333"/>
-            <rect x="60" y="60" width="10" height="10" fill="#333"/>
-            <rect x="76" y="60" width="8" height="8" fill="#333"/>
-            <rect x="90" y="60" width="12" height="10" fill="#333"/>
-            <rect x="106" y="60" width="8" height="8" fill="#333"/>
-            <rect x="60" y="76" width="8" height="8" fill="#333"/>
-            <rect x="78" y="76" width="12" height="12" fill="#333"/>
-            <rect x="98" y="76" width="8" height="8" fill="#333"/>
-            <rect x="112" y="78" width="8" height="8" fill="#333"/>
-            <rect x="60" y="92" width="10" height="10" fill="#333"/>
-            <rect x="76" y="92" width="8" height="8" fill="#333"/>
-            <rect x="90" y="90" width="12" height="12" fill="#333"/>
-            <rect x="106" y="92" width="10" height="8" fill="#333"/>
-            <rect x="60" y="108" width="8" height="10" fill="#333"/>
-            <rect x="74" y="106" width="10" height="12" fill="#333"/>
-            <rect x="90" y="106" width="8" height="12" fill="#333"/>
-            <rect x="104" y="108" width="14" height="10" fill="#333"/>
-          </svg>
-          <div style="font-size:12px;font-weight:600;color:#333">UEN: 202411234A</div>
-          <div style="font-size:11px;color:#666;margin-top:3px">Reference: RG-0214-JUN25</div>
+          <div id="ma-paynow-qr" style="margin:0 auto 10px"></div>
+          <div id="ma-paynow-meta"></div>
           <div style="font-size:10px;color:#999;margin-top:6px">Scan with your banking app</div>
+        </div>
+        <div style="margin-top:10px;font-size:10.5px;color:var(--mx-muted);text-align:center;line-height:1.5">
+          <i class="ti ti-info-circle" aria-hidden="true"></i> This QR is for display only — payment is confirmed manually by the MA via "Record payment". ManAgeX has no bank connection and cannot detect or acknowledge a real transfer. See <span class="mono">docs/architecture.md</span> for the production integration plan.
         </div>
         <div style="margin-top:14px;text-align:center">
           <button class="btn" style="width:100%;justify-content:center;color:var(--mx-muted)"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit / debit card — coming soon</button>
@@ -1074,6 +1052,29 @@ select.inp { cursor: pointer; }
     <div class="card" style="margin-bottom:14px">
       <div class="card-title"><i class="ti ti-settings" aria-hidden="true"></i> System settings</div>
       <p style="color:var(--mx-secondary);font-size:13px">Property configuration, user roles, API keys, email templates, PayNow UEN setup, ANPR integration, and notification preferences.</p>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><i class="ti ti-qrcode" aria-hidden="true"></i> PayNow QR setup</div>
+      <p style="color:var(--mx-secondary);font-size:12.5px;margin-bottom:14px">Choose how residents see your PayNow QR on the Payments page. Either option is display-only — neither completes a transaction or tells ManAgeX whether a resident actually paid (see note below).</p>
+      <div class="tab-bar" style="margin-bottom:14px">
+        <div class="tab" id="pn-tab-generated" onclick="setPaynowMode('generated')"><i class="ti ti-barcode" aria-hidden="true"></i> Generate from UEN</div>
+        <div class="tab" id="pn-tab-uploaded" onclick="setPaynowMode('uploaded')"><i class="ti ti-upload" aria-hidden="true"></i> Upload bank QR image</div>
+      </div>
+      <div id="pn-pane-generated">
+        <div class="grid2">
+          <div class="form-row"><label class="form-label">UEN</label><input class="inp" id="pn-uen-input" placeholder="e.g. 202411234A"></div>
+          <div class="form-row"><label class="form-label">Reference prefix</label><input class="inp" id="pn-ref-input" placeholder="e.g. RG"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="savePaynowUen()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save</button>
+      </div>
+      <div id="pn-pane-uploaded" style="display:none">
+        <div class="upload-zone" onclick="document.getElementById('pn-qr-file').click()">
+          <i class="ti ti-cloud-upload" style="font-size:22px;color:var(--mx-muted)" aria-hidden="true"></i>
+          <div style="font-size:12px;color:var(--mx-secondary);margin-top:6px">Click to upload your bank's PayNow QR (PNG/JPG, exported from your banking app)</div>
+        </div>
+        <input type="file" id="pn-qr-file" accept="image/*" style="display:none" onchange="handlePaynowUpload(event)">
+        <div id="pn-uploaded-preview" style="margin-top:12px;text-align:center"></div>
+      </div>
     </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-refresh" aria-hidden="true"></i> Demo data</div>
@@ -2121,13 +2122,61 @@ function exportCurrentReportCSV() {
 function renderPaymentsPage() {
   const qrBox = document.getElementById('ma-paynow-qr');
   if (!qrBox) return;
-  const payload = MXUtil.buildPayNowPayload('202411234A', 850, 'RG-0214-JUN25');
-  qrBox.innerHTML = MXUtil.renderQR(payload, 130);
-  const tbody = document.getElementById('ma-payment-history-tbody');
   const s = MX.get();
+  const pn = s.paynow;
+  const ref = `${pn.refPrefix}-0214-JUN25`;
+  if (pn.mode === 'uploaded' && pn.uploadedQrDataUrl) {
+    qrBox.innerHTML = `<img src="${pn.uploadedQrDataUrl}" alt="Uploaded PayNow QR" style="width:130px;height:130px;object-fit:contain">`;
+    document.getElementById('ma-paynow-meta').innerHTML = `<div style="font-size:11px;color:#666;margin-top:3px">Reference: ${ref} <span style="color:#999">(quote this in your transfer)</span></div>`;
+  } else {
+    const payload = MXUtil.buildPayNowPayload(pn.uen, 850, ref);
+    qrBox.innerHTML = MXUtil.renderQR(payload, 130);
+    document.getElementById('ma-paynow-meta').innerHTML = `<div style="font-size:12px;font-weight:600;color:#333">UEN: ${pn.uen}</div><div style="font-size:11px;color:#666;margin-top:3px">Reference: ${ref}</div>`;
+  }
+  const tbody = document.getElementById('ma-payment-history-tbody');
   tbody.innerHTML = s.payments.length ? s.payments.map(p => `
     <tr><td>${p.date}</td><td>${p.period}</td><td>$${p.amount}</td><td><span class="badge b-teal">${p.method}</span></td><td class="mono" style="font-size:11px">${p.ref}</td></tr>`).join('')
     : `<tr><td colspan="5">${emptyState('ti-history','No payment history','')}</td></tr>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Settings page — PayNow QR setup (upload vs generated)
+   ════════════════════════════════════════════════════════════════ */
+function renderSettingsPage() {
+  const pn = MX.get().paynow;
+  document.getElementById('pn-tab-generated').classList.toggle('active', pn.mode === 'generated');
+  document.getElementById('pn-tab-uploaded').classList.toggle('active', pn.mode === 'uploaded');
+  document.getElementById('pn-pane-generated').style.display = pn.mode === 'generated' ? 'block' : 'none';
+  document.getElementById('pn-pane-uploaded').style.display = pn.mode === 'uploaded' ? 'block' : 'none';
+  document.getElementById('pn-uen-input').value = pn.uen;
+  document.getElementById('pn-ref-input').value = pn.refPrefix;
+  const preview = document.getElementById('pn-uploaded-preview');
+  preview.innerHTML = pn.uploadedQrDataUrl
+    ? `<img src="${pn.uploadedQrDataUrl}" alt="Uploaded QR preview" style="width:140px;height:140px;object-fit:contain;border:1px solid var(--mx-border);border-radius:var(--radius-md);background:#fff;padding:8px"><div style="font-size:11px;color:var(--mx-muted);margin-top:6px">${pn.uploadedQrName}</div>`
+    : `<div style="font-size:11px;color:var(--mx-muted)">No QR uploaded yet</div>`;
+}
+function setPaynowMode(mode) {
+  MX.set(s => { s.paynow.mode = mode; });
+  renderSettingsPage();
+}
+function savePaynowUen() {
+  const uen = document.getElementById('pn-uen-input').value.trim();
+  const refPrefix = document.getElementById('pn-ref-input').value.trim();
+  if (!uen) { MXUtil.toast('UEN is required', 'error'); return; }
+  MX.set(s => { s.paynow.uen = uen; s.paynow.refPrefix = refPrefix || 'RG'; });
+  MXUtil.toast('PayNow UEN settings saved', 'success');
+}
+function handlePaynowUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { MXUtil.toast('Please upload an image file', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    MX.set(s => { s.paynow.uploadedQrDataUrl = reader.result; s.paynow.uploadedQrName = file.name; });
+    renderSettingsPage();
+    MXUtil.toast('QR image uploaded — display only, not a live payment link', 'success');
+  };
+  reader.readAsDataURL(file);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -2148,6 +2197,7 @@ function renderPage(id) {
   if (id === 'polls') renderPolls();
   if (id === 'parcels') renderParcels();
   if (id === 'vendors') renderVendors();
+  if (id === 'settings') renderSettingsPage();
 }
 function renderAll() {
   renderNav();
