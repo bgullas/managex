@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="assets/app-state.js"></script>
+<script src="assets/app-utils.js"></script>
 <style>
 :root {
   --mx-black: #0D0F12;
@@ -521,6 +523,36 @@ select.inp { cursor: pointer; }
   .grid4 { grid-template-columns: 1fr 1fr; }
   .grid3 { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 36px 18px; color: var(--mx-muted); }
+.empty-state i { font-size: 28px; display: block; margin-bottom: 8px; color: var(--mx-border-light); }
+.empty-state-title { font-size: 13px; font-weight: 500; color: var(--mx-secondary); margin-bottom: 2px; }
+.empty-state-sub { font-size: 11.5px; }
+
+/* ── Modal ── */
+.mx-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 500; display: none; align-items: center; justify-content: center; }
+.mx-modal-overlay.open { display: flex; }
+.mx-modal { background: var(--mx-charcoal); border: 1px solid var(--mx-border); border-radius: var(--radius-lg); padding: 22px; width: 440px; max-width: 92vw; max-height: 86vh; overflow-y: auto; }
+.mx-modal-title { font-size: 15px; font-weight: 600; color: var(--mx-white); margin-bottom: 14px; display:flex; align-items:center; justify-content:space-between; }
+.mx-modal-close { cursor: pointer; color: var(--mx-muted); font-size: 18px; }
+.mx-modal-close:hover { color: var(--mx-text); }
+
+/* ── Kanban ── */
+.kanban-wrap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.kanban-col-title { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--mx-muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
+.kanban-card { background: var(--mx-panel); border: 1px solid var(--mx-border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px; }
+.kanban-card-title { font-size: 12.5px; font-weight: 500; color: var(--mx-text); margin-bottom: 4px; }
+.kanban-card-meta { font-size: 11px; color: var(--mx-muted); margin-bottom: 8px; }
+.sla-timer { font-size: 10.5px; font-family: var(--font-mono); }
+
+/* ── Poll bars ── */
+.poll-bar-row { margin-bottom: 10px; }
+.poll-bar-label { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
+.poll-bar-bg { height: 10px; background: var(--mx-panel); border-radius: 5px; overflow: hidden; }
+.poll-bar-fill { height: 100%; background: var(--mx-teal); border-radius: 5px; transition: width .3s; }
+
+.renewal-soon { border-color: var(--mx-amber)50 !important; }
 </style>
 </head>
 <body>
@@ -608,11 +640,8 @@ select.inp { cursor: pointer; }
       </div>
 
       <div class="card">
-        <div class="card-title"><i class="ti ti-checks" aria-hidden="true"></i> Pending approvals <span class="badge b-amber" style="margin-left:4px;font-size:10px">4</span></div>
-        <div class="stat-row"><div><div style="font-weight:500">Car registration — #08-14</div><div style="font-size:11px;color:var(--mx-muted)">Log card uploaded · 2h ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
-        <div class="stat-row"><div><div style="font-weight:500">New tenant — #04-22</div><div style="font-size:11px;color:var(--mx-muted)">Tenancy agreement · 5h ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
-        <div class="stat-row"><div><div style="font-weight:500">Sub-tenant — #11-08</div><div style="font-size:11px;color:var(--mx-muted)">Relationship: Renting · 1d ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
-        <div class="stat-row"><div><div style="font-weight:500">Car reg — #02-33</div><div style="font-size:11px;color:var(--mx-muted)">Log card uploaded · 2d ago</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></div>
+        <div class="card-title"><i class="ti ti-checks" aria-hidden="true"></i> Pending approvals <span class="badge b-amber" style="margin-left:4px;font-size:10px" id="dash-pending-count">4</span></div>
+        <div id="dash-pending-approvals"></div>
       </div>
     </div>
 
@@ -644,33 +673,27 @@ select.inp { cursor: pointer; }
         <div class="tab active" onclick="st('tn','all',event)">All units</div>
         <div class="tab" onclick="st('tn','owners',event)">Owners</div>
         <div class="tab" onclick="st('tn','tenants',event)">Tenants</div>
-        <div class="tab" onclick="st('tn','pending',event)">Pending <span class="badge b-amber" style="margin-left:4px;font-size:10px">3</span></div>
+        <div class="tab" onclick="st('tn','pending',event)">Pending <span class="badge b-amber" style="margin-left:4px;font-size:10px" id="tn-pending-badge">3</span></div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-sm"><i class="ti ti-table-import" aria-hidden="true"></i> Import Excel</button>
-        <button class="btn btn-sm btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add unit</button>
+        <button class="btn btn-sm" onclick="importExcel()"><i class="ti ti-table-import" aria-hidden="true"></i> Import Excel</button>
+        <button class="btn btn-sm btn-primary" onclick="openAddUnitModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add unit</button>
       </div>
     </div>
 
     <div class="tab-pane active" id="tn-tab-all">
       <div class="card" style="margin-bottom:14px;padding:12px 14px">
         <div style="display:flex;gap:10px;align-items:center">
-          <input class="inp" style="max-width:280px" placeholder="Search unit, name, NRIC…" aria-label="Search units">
-          <select class="inp" style="max-width:150px" aria-label="Filter by status"><option>All statuses</option><option>Paid</option><option>Overdue</option><option>Partial</option></select>
-          <select class="inp" style="max-width:150px" aria-label="Filter by type"><option>All types</option><option>Owner-occupied</option><option>Renting out</option></select>
+          <input class="inp" id="tenants-search" style="max-width:280px" placeholder="Search unit, name, NRIC…" aria-label="Search units" oninput="filterTenants()">
+          <select class="inp" id="tenants-filter-status" style="max-width:150px" aria-label="Filter by status" onchange="filterTenants()"><option>All statuses</option><option>Paid</option><option>Overdue</option><option>Partial</option></select>
+          <select class="inp" id="tenants-filter-type" style="max-width:150px" aria-label="Filter by type" onchange="filterTenants()"><option>All types</option><option>Owner-occupied</option><option>Renting out</option></select>
         </div>
       </div>
       <div class="card">
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Unit</th><th>Primary owner</th><th>Occupancy</th><th>Residents</th><th>Vehicles</th><th>Fee status</th><th></th></tr></thead>
-            <tbody>
-              <tr><td><span class="unit-tag">#02-14</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-b">RK</div><div><div style="font-weight:500">Rajesh Kumar</div><div style="font-size:11px;color:var(--mx-muted)">rajesh.k@email.com</div></div></div></td><td><span class="badge b-teal">Owner-occupied</span></td><td>4 <span style="color:var(--mx-muted);font-size:11px">(spouse, 2 children)</span></td><td><span class="mono" style="font-size:11.5px">SKA1234B · SLB4567D</span></td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-sm">View</button></td></tr>
-              <tr><td><span class="unit-tag">#04-22</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-t">LH</div><div><div style="font-weight:500">Lee Hwee Leng</div><div style="font-size:11px;color:var(--mx-muted)">hwee.leng@gmail.com</div></div></div></td><td><span class="badge b-blue">Renting out</span></td><td>2 <span style="color:var(--mx-muted);font-size:11px">(tenants)</span></td><td><span class="mono" style="font-size:11.5px">SHA7890C</span></td><td><span class="badge b-amber">Partial</span></td><td><button class="btn btn-sm">View</button></td></tr>
-              <tr><td><span class="unit-tag">#07-08</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-a">NF</div><div><div style="font-weight:500">Noor Fadhilah</div><div style="font-size:11px;color:var(--mx-muted)">noor.f@proton.me</div></div></div></td><td><span class="badge b-teal">Owner-occupied</span></td><td>5 <span style="color:var(--mx-muted);font-size:11px">(spouse, 2 child, DW)</span></td><td><span class="mono" style="font-size:11.5px">SJA2200E</span></td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-sm">View</button></td></tr>
-              <tr><td><span class="unit-tag">#11-03</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-r">CW</div><div><div style="font-weight:500">Chen Wei Liang</div><div style="font-size:11px;color:var(--mx-muted)">cwl@outlook.sg</div></div></div></td><td><span class="badge b-purple">Owner overseas</span></td><td>3 <span style="color:var(--mx-muted);font-size:11px">(renting family)</span></td><td>—</td><td><span class="badge b-red">Overdue</span></td><td><button class="btn btn-sm">View</button></td></tr>
-              <tr><td><span class="unit-tag">#12-17</span></td><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar av-p">AS</div><div><div style="font-weight:500">Arjun Sharma</div><div style="font-size:11px;color:var(--mx-muted)">arjun.sg@icloud.com</div></div></div></td><td><span class="badge b-teal">Owner-occupied</span></td><td>2 <span style="color:var(--mx-muted);font-size:11px">(spouse)</span></td><td><span class="mono" style="font-size:11.5px">SBA4411G</span></td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-sm">View</button></td></tr>
-            </tbody>
+            <tbody id="tenants-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -679,42 +702,7 @@ select.inp { cursor: pointer; }
     <div class="tab-pane" id="tn-tab-pending">
       <div class="card">
         <div class="card-title"><i class="ti ti-clock" aria-hidden="true"></i> Awaiting approval</div>
-        <div class="pending-item">
-          <div class="avatar av-g" style="width:40px;height:40px;font-size:13px">TK</div>
-          <div style="flex:1">
-            <div style="font-weight:500">Tan Kim Seng <span class="badge b-amber" style="margin-left:6px">Sub-tenant</span></div>
-            <div style="font-size:12px;color:var(--mx-secondary)">Unit #04-22 · Relationship: Renting · Tenancy agreement uploaded</div>
-            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Self-registered via ManAgeX app · 5 hours ago</div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-success"><i class="ti ti-check" aria-hidden="true"></i> Approve</button>
-            <button class="btn btn-sm btn-danger"><i class="ti ti-x" aria-hidden="true"></i> Reject</button>
-          </div>
-        </div>
-        <div class="pending-item">
-          <div class="avatar av-r" style="width:40px;height:40px;font-size:13px">MI</div>
-          <div style="flex:1">
-            <div style="font-weight:500">Muhammad Irfan <span class="badge b-teal" style="margin-left:6px">New owner</span></div>
-            <div style="font-size:12px;color:var(--mx-secondary)">Unit #08-01 · Ownership document uploaded</div>
-            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Registered at MA office · 2 days ago</div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-success"><i class="ti ti-check" aria-hidden="true"></i> Approve</button>
-            <button class="btn btn-sm btn-danger"><i class="ti ti-x" aria-hidden="true"></i> Reject</button>
-          </div>
-        </div>
-        <div class="pending-item">
-          <div class="avatar av-t" style="width:40px;height:40px;font-size:13px">SL</div>
-          <div style="flex:1">
-            <div style="font-weight:500">Sri Lakshmi <span class="badge b-gray" style="margin-left:6px">Domestic worker</span></div>
-            <div style="font-size:12px;color:var(--mx-secondary)">Unit #07-08 · Added by owner Noor Fadhilah</div>
-            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Pending work permit verification · 3 days ago</div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-success"><i class="ti ti-check" aria-hidden="true"></i> Approve</button>
-            <button class="btn btn-sm btn-danger"><i class="ti ti-x" aria-hidden="true"></i> Reject</button>
-          </div>
-        </div>
+        <div id="tn-pending-list"></div>
       </div>
     </div>
 
@@ -729,53 +717,19 @@ select.inp { cursor: pointer; }
   <!-- ════ MANAGEMENT FEES ════ -->
   <div class="page" id="page-fees">
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn btn-primary btn-sm"><i class="ti ti-mail-forward" aria-hidden="true"></i> Email all statements</button>
-      <button class="btn btn-sm"><i class="ti ti-file-export" aria-hidden="true"></i> Export report</button>
-      <button class="btn btn-sm"><i class="ti ti-plus" aria-hidden="true"></i> Record payment</button>
+      <button class="btn btn-primary btn-sm" onclick="MXUtil.toast('Statements emailed to all units','success')"><i class="ti ti-mail-forward" aria-hidden="true"></i> Email all statements</button>
+      <button class="btn btn-sm" onclick="generateReport('fees')"><i class="ti ti-file-export" aria-hidden="true"></i> Export report</button>
+      <button class="btn btn-sm" onclick="openRecordPaymentModal('#02-14')"><i class="ti ti-plus" aria-hidden="true"></i> Record payment</button>
     </div>
 
-    <div class="grid2" style="margin-bottom:16px">
-      <div class="card">
-        <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i> Unit #02-14 — Rajesh Kumar</div>
-        <div style="margin-bottom:12px">
-          <span class="fee-month fm-paid">Jan</span><span class="fee-month fm-paid">Feb</span><span class="fee-month fm-paid">Mar</span><span class="fee-month fm-paid">Apr</span><span class="fee-month fm-paid">May</span><span class="fee-month fm-paid">Jun</span><span class="fee-month fm-unpaid">Jul</span><span class="fee-month fm-unpaid">Aug</span><span class="fee-month fm-unpaid">Sep</span><span class="fee-month fm-unpaid">Oct</span><span class="fee-month fm-unpaid">Nov</span><span class="fee-month fm-unpaid">Dec</span>
-        </div>
-        <div class="stat-row"><span style="color:var(--mx-secondary)">Monthly fee</span><strong style="color:var(--mx-white)">$850</strong></div>
-        <div class="stat-row"><span style="color:var(--mx-secondary)">Paid year-to-date</span><strong style="color:var(--mx-green)">$5,100</strong></div>
-        <div class="stat-row"><span style="color:var(--mx-secondary)">Outstanding</span><strong>$0</strong></div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn btn-sm"><i class="ti ti-file-invoice" aria-hidden="true"></i> Statement</button>
-          <button class="btn btn-sm"><i class="ti ti-mail" aria-hidden="true"></i> Email</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Unit #11-03 — Chen Wei Liang <span class="badge b-red" style="margin-left:6px">Overdue</span></div>
-        <div style="margin-bottom:12px">
-          <span class="fee-month fm-paid">Jan</span><span class="fee-month fm-paid">Feb</span><span class="fee-month fm-partial">Mar</span><span class="fee-month fm-overdue">Apr</span><span class="fee-month fm-overdue">May</span><span class="fee-month fm-overdue">Jun</span><span class="fee-month fm-unpaid">Jul</span><span class="fee-month fm-unpaid">Aug</span><span class="fee-month fm-unpaid">Sep</span><span class="fee-month fm-unpaid">Oct</span><span class="fee-month fm-unpaid">Nov</span><span class="fee-month fm-unpaid">Dec</span>
-        </div>
-        <div class="stat-row"><span style="color:var(--mx-secondary)">Monthly fee</span><strong style="color:var(--mx-white)">$850</strong></div>
-        <div class="stat-row"><span style="color:var(--mx-secondary)">Paid year-to-date</span><strong>$2,200</strong></div>
-        <div class="stat-row"><span style="color:var(--mx-secondary)">Outstanding</span><strong style="color:var(--mx-red)">$3,300</strong></div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn btn-sm"><i class="ti ti-file-invoice" aria-hidden="true"></i> Statement</button>
-          <button class="btn btn-sm btn-danger"><i class="ti ti-mail-forward" aria-hidden="true"></i> Send reminder</button>
-        </div>
-      </div>
-    </div>
+    <div class="grid2" style="margin-bottom:16px" id="fee-unit-cards"></div>
 
     <div class="card">
       <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i> Overall collection — 2025</div>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Month</th><th>Expected</th><th>Collected</th><th>Outstanding</th><th>Rate</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td>January</td><td>$231,600</td><td>$229,800</td><td>$1,800</td><td>99.2%</td><td><span class="badge b-green">Closed</span></td></tr>
-            <tr><td>February</td><td>$231,600</td><td>$228,400</td><td>$3,200</td><td>98.6%</td><td><span class="badge b-green">Closed</span></td></tr>
-            <tr><td>March</td><td>$231,600</td><td>$225,100</td><td>$6,500</td><td>97.2%</td><td><span class="badge b-green">Closed</span></td></tr>
-            <tr><td>April</td><td>$231,600</td><td>$220,800</td><td>$10,800</td><td>95.3%</td><td><span class="badge b-green">Closed</span></td></tr>
-            <tr><td>May</td><td>$231,600</td><td>$221,400</td><td>$10,200</td><td>95.6%</td><td><span class="badge b-green">Closed</span></td></tr>
-            <tr><td>June</td><td>$231,600</td><td>$218,400</td><td>$13,200</td><td>94.2%</td><td><span class="badge b-amber">Open</span></td></tr>
-          </tbody>
+          <tbody id="collection-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -793,46 +747,21 @@ select.inp { cursor: pointer; }
     <div class="tab-pane active" id="ac-tab-guests">
       <div class="card" style="margin-bottom:14px">
         <div class="card-title"><i class="ti ti-clock" aria-hidden="true"></i> Pre-registered visitors — today</div>
-        <div class="pending-item">
-          <div class="qr-preview"><svg width="44" height="44" viewBox="0 0 44 44" fill="currentColor" style="color:var(--mx-teal);opacity:.8"><rect x="2" y="2" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="5" y="5" width="10" height="10" opacity=".5"/><rect x="26" y="2" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="29" y="5" width="10" height="10" opacity=".5"/><rect x="2" y="26" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="5" y="29" width="10" height="10" opacity=".5"/><rect x="26" y="26" width="6" height="6" opacity=".6"/><rect x="34" y="26" width="6" height="6" opacity=".6"/><rect x="26" y="34" width="6" height="6" opacity=".6"/><rect x="36" y="36" width="6" height="6" opacity=".6"/></svg></div>
-          <div style="flex:1">
-            <div style="font-weight:500">David Tan Wei Ming</div>
-            <div style="font-size:12px;color:var(--mx-secondary)">Visiting #07-08 · +65 9123 4567 · QR sent via SMS</div>
-            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Valid: 24 Jun 10:00am – 11:00pm</div>
-          </div>
-          <span class="badge b-green"><i class="ti ti-qrcode" style="font-size:11px" aria-hidden="true"></i> QR active</span>
-        </div>
-        <div class="pending-item">
-          <div class="qr-preview"><i class="ti ti-car" style="font-size:22px;color:var(--mx-amber)" aria-hidden="true"></i></div>
-          <div style="flex:1">
-            <div style="font-weight:500"><span class="mono">SJK4521T</span> — vehicle pass</div>
-            <div style="font-size:12px;color:var(--mx-secondary)">Visiting #02-14 · ANPR auto-grant enabled</div>
-            <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Valid: 24 Jun 8:00am – 6:00pm</div>
-          </div>
-          <span class="badge b-amber">Pending ANPR</span>
-        </div>
-        <div class="pending-item" style="opacity:.6">
-          <div class="qr-preview"><i class="ti ti-check" style="font-size:22px;color:var(--mx-green)" aria-hidden="true"></i></div>
-          <div style="flex:1">
-            <div style="font-weight:500">Priya Rajan</div>
-            <div style="font-size:12px;color:var(--mx-secondary)">Visited #12-17 · Entry 10:34am · Departed 12:52pm</div>
-          </div>
-          <span class="badge b-gray">Departed</span>
-        </div>
+        <div id="guests-list"></div>
       </div>
 
       <div class="card">
         <div class="card-title"><i class="ti ti-plus" aria-hidden="true"></i> Invite a guest <span style="font-size:11px;font-weight:400;color:var(--mx-muted);margin-left:4px">— tenant self-service</span></div>
         <div class="grid2">
           <div>
-            <div class="form-row"><label class="form-label">Guest name</label><input class="inp" placeholder="Full name" aria-label="Guest name"></div>
-            <div class="form-row"><label class="form-label">Mobile number</label><input class="inp" placeholder="+65 XXXX XXXX" aria-label="Mobile number"></div>
-            <div class="form-row"><label class="form-label">Car plate (optional — triggers ANPR)</label><input class="inp" placeholder="e.g. SJK4521T" aria-label="Car plate number"></div>
+            <div class="form-row"><label class="form-label">Guest name</label><input class="inp" id="guest-name" placeholder="Full name" aria-label="Guest name"></div>
+            <div class="form-row"><label class="form-label">Mobile number</label><input class="inp" id="guest-phone" placeholder="+65 XXXX XXXX" aria-label="Mobile number"></div>
+            <div class="form-row"><label class="form-label">Car plate (optional — triggers ANPR)</label><input class="inp" id="guest-plate" placeholder="e.g. SJK4521T" aria-label="Car plate number"></div>
           </div>
           <div>
-            <div class="form-row"><label class="form-label">Valid from</label><input class="inp" type="date" aria-label="Valid from date"></div>
-            <div class="form-row"><label class="form-label">Valid until</label><input class="inp" type="date" aria-label="Valid until date"></div>
-            <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center"><i class="ti ti-send" aria-hidden="true"></i> Send QR invite via SMS</button>
+            <div class="form-row"><label class="form-label">Valid from</label><input class="inp" id="guest-from" type="datetime-local" aria-label="Valid from date"></div>
+            <div class="form-row"><label class="form-label">Valid until</label><input class="inp" id="guest-to" type="datetime-local" aria-label="Valid until date"></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="submitGuestInvite()"><i class="ti ti-send" aria-hidden="true"></i> Send QR invite via SMS</button>
           </div>
         </div>
       </div>
@@ -843,16 +772,16 @@ select.inp { cursor: pointer; }
         <div class="card-title"><i class="ti ti-walk" aria-hidden="true"></i> Walk-in registration <span style="font-size:11px;font-weight:400;color:var(--mx-muted);margin-left:4px">— security counter</span></div>
         <div class="grid2">
           <div>
-            <div class="form-row"><label class="form-label">Visitor full name</label><input class="inp" placeholder="As per ID" aria-label="Visitor name"></div>
-            <div class="form-row"><label class="form-label">NRIC / Passport / FIN</label><input class="inp" placeholder="ID number" aria-label="ID number"></div>
-            <div class="form-row"><label class="form-label">Mobile number</label><input class="inp" placeholder="+65 XXXX XXXX" aria-label="Mobile"></div>
-            <div class="form-row"><label class="form-label">Vehicle plate (if driving in)</label><input class="inp" placeholder="Optional" aria-label="Vehicle plate"></div>
+            <div class="form-row"><label class="form-label">Visitor full name</label><input class="inp" id="wi-name" placeholder="As per ID" aria-label="Visitor name"></div>
+            <div class="form-row"><label class="form-label">NRIC / Passport / FIN</label><input class="inp" id="wi-id" placeholder="ID number" aria-label="ID number"></div>
+            <div class="form-row"><label class="form-label">Mobile number</label><input class="inp" id="wi-phone" placeholder="+65 XXXX XXXX" aria-label="Mobile"></div>
+            <div class="form-row"><label class="form-label">Vehicle plate (if driving in)</label><input class="inp" id="wi-plate" placeholder="Optional" aria-label="Vehicle plate"></div>
           </div>
           <div>
-            <div class="form-row"><label class="form-label">Visiting unit</label><input class="inp" placeholder="e.g. #07-08" aria-label="Unit number"></div>
-            <div class="form-row"><label class="form-label">Purpose of visit</label><select class="inp" aria-label="Purpose"><option>Personal visit</option><option>Parcel / delivery</option><option>Contractor / works</option><option>Property viewing</option><option>Other</option></select></div>
-            <div class="form-row"><label class="form-label">Authorised by</label><input class="inp" placeholder="Tenant name / confirmed by" aria-label="Authorised by"></div>
-            <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center"><i class="ti ti-printer" aria-hidden="true"></i> Register & print visitor pass</button>
+            <div class="form-row"><label class="form-label">Visiting unit</label><input class="inp" id="wi-unit" placeholder="e.g. #07-08" aria-label="Unit number"></div>
+            <div class="form-row"><label class="form-label">Purpose of visit</label><select class="inp" id="wi-purpose" aria-label="Purpose"><option>Personal visit</option><option>Parcel / delivery</option><option>Contractor / works</option><option>Property viewing</option><option>Other</option></select></div>
+            <div class="form-row"><label class="form-label">Authorised by</label><input class="inp" id="wi-authby" placeholder="Tenant name / confirmed by" aria-label="Authorised by"></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="submitWalkin()"><i class="ti ti-printer" aria-hidden="true"></i> Register & print visitor pass</button>
           </div>
         </div>
       </div>
@@ -861,10 +790,7 @@ select.inp { cursor: pointer; }
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Unit</th><th>Resident</th><th>Expected visitor</th><th>Valid until</th><th>Method</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr><td><span class="unit-tag">#07-08</span></td><td>Noor Fadhilah</td><td>David Tan Wei Ming</td><td>24 Jun 11:00pm</td><td><span class="badge b-teal">QR code</span></td><td><button class="btn btn-sm btn-primary">Grant access</button></td></tr>
-              <tr><td><span class="unit-tag">#02-14</span></td><td>Rajesh Kumar</td><td><span class="mono">SJK4521T</span></td><td>24 Jun 6:00pm</td><td><span class="badge b-amber">ANPR / plate</span></td><td><button class="btn btn-sm btn-primary">Grant access</button></td></tr>
-            </tbody>
+            <tbody id="expected-visitors-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -876,18 +802,13 @@ select.inp { cursor: pointer; }
           <div class="section-hdr-title">Registered vehicles</div>
           <div style="display:flex;gap:8px;align-items:center">
             <span class="badge b-teal"><i class="ti ti-plug-connected" style="font-size:11px" aria-hidden="true"></i> ANPR API live</span>
-            <button class="btn btn-sm"><i class="ti ti-api" aria-hidden="true"></i> API docs</button>
+            <button class="btn btn-sm" onclick="MXUtil.toast('See docs/api-anpr.md for full spec','info')"><i class="ti ti-api" aria-hidden="true"></i> API docs</button>
           </div>
         </div>
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Plate</th><th>Unit</th><th>Registered to</th><th>Type</th><th>Log card</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              <tr><td><strong class="mono">SKA1234B</strong></td><td><span class="unit-tag">#02-14</span></td><td>Rajesh Kumar</td><td>Car</td><td><span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px" aria-hidden="true"></i> Uploaded</span></td><td><span class="badge b-green">Approved</span></td><td><button class="btn btn-sm">Details</button></td></tr>
-              <tr><td><strong class="mono">SLB4567D</strong></td><td><span class="unit-tag">#02-14</span></td><td>Rajesh Kumar</td><td>Car</td><td><span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px" aria-hidden="true"></i> Uploaded</span></td><td><span class="badge b-green">Approved</span></td><td><button class="btn btn-sm">Details</button></td></tr>
-              <tr><td><strong class="mono">SHA7890C</strong></td><td><span class="unit-tag">#04-22</span></td><td>Lee Hwee Leng</td><td>Car</td><td><span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px" aria-hidden="true"></i> Uploaded</span></td><td><span class="badge b-green">Approved</span></td><td><button class="btn btn-sm">Details</button></td></tr>
-              <tr><td><strong class="mono">SBA4411G</strong></td><td><span class="unit-tag">#12-17</span></td><td>Arjun Sharma</td><td>Car</td><td><span class="badge b-amber"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> Pending review</span></td><td><span class="badge b-amber">Under review</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-sm btn-success">Approve</button><button class="btn btn-sm btn-danger">Reject</button></div></td></tr>
-            </tbody>
+            <tbody id="vehicles-tbody-ac"></tbody>
           </table>
         </div>
       </div>
@@ -924,22 +845,15 @@ select.inp { cursor: pointer; }
     <div class="tab-pane" id="ac-tab-log">
       <div class="card">
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <input class="inp" style="max-width:220px" placeholder="Search plate, name, unit…" aria-label="Search access log">
-          <select class="inp" style="max-width:130px" aria-label="Filter by gate"><option>All gates</option><option>Gate A</option><option>Gate B</option><option>Car park</option></select>
-          <select class="inp" style="max-width:130px" aria-label="Filter by outcome"><option>All outcomes</option><option>Granted</option><option>Denied</option><option>Pending</option></select>
+          <input class="inp" id="log-search" style="max-width:220px" placeholder="Search plate, name, unit…" aria-label="Search access log" oninput="filterAccessLog()">
+          <select class="inp" id="log-gate-filter" style="max-width:130px" aria-label="Filter by gate" onchange="filterAccessLog()"><option>All gates</option><option>Gate A</option><option>Gate B</option><option>Car park</option></select>
+          <select class="inp" id="log-outcome-filter" style="max-width:130px" aria-label="Filter by outcome" onchange="filterAccessLog()"><option>All outcomes</option><option>Granted</option><option>Denied</option><option>Pending</option></select>
           <input class="inp" type="date" style="max-width:160px" aria-label="Filter by date">
         </div>
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Time</th><th>Identity</th><th>Gate</th><th>Method</th><th>Unit</th><th>Outcome</th></tr></thead>
-            <tbody>
-              <tr><td class="mono" style="font-size:12px">10:41am</td><td>David Tan Wei Ming — QR scan</td><td>Gate A</td><td><span class="badge b-teal">QR code</span></td><td><span class="unit-tag">#07-08</span></td><td><span class="badge b-green">Granted</span></td></tr>
-              <tr><td class="mono" style="font-size:12px">10:38am</td><td><span class="mono">SJK4521T</span> — ANPR scan</td><td>Car park</td><td><span class="badge b-amber">ANPR</span></td><td><span class="unit-tag">#02-14</span></td><td><span class="badge b-amber">Pending</span></td></tr>
-              <tr><td class="mono" style="font-size:12px">10:33am</td><td>Resident access card · #12-05</td><td>Gate B</td><td><span class="badge b-blue">Access card</span></td><td><span class="unit-tag">#12-05</span></td><td><span class="badge b-green">Granted</span></td></tr>
-              <tr><td class="mono" style="font-size:12px">10:29am</td><td><span class="mono">SKL8812</span> — unregistered</td><td>Car park</td><td><span class="badge b-amber">ANPR</span></td><td>—</td><td><span class="badge b-red">Denied</span></td></tr>
-              <tr><td class="mono" style="font-size:12px">10:22am</td><td>FIN G1234567A — QR scan</td><td>Gate A</td><td><span class="badge b-teal">QR code</span></td><td><span class="unit-tag">#03-18</span></td><td><span class="badge b-green">Granted</span></td></tr>
-              <tr><td class="mono" style="font-size:12px">10:11am</td><td>Parcel delivery — walk-in</td><td>Gate A</td><td><span class="badge b-gray">Manual</span></td><td><span class="unit-tag">#09-22</span></td><td><span class="badge b-green">Granted</span></td></tr>
-            </tbody>
+            <tbody id="access-log-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -954,7 +868,7 @@ select.inp { cursor: pointer; }
         <div class="tab" onclick="st('fc','occ',event)">Occupancy</div>
         <div class="tab" onclick="st('fc','assets',event)">Manage facilities</div>
       </div>
-      <button class="btn btn-primary btn-sm"><i class="ti ti-plus" aria-hidden="true"></i> New booking</button>
+      <button class="btn btn-primary btn-sm" onclick="openBookingModal('2025-06-24')"><i class="ti ti-plus" aria-hidden="true"></i> New booking</button>
     </div>
 
     <div class="tab-pane active" id="fc-tab-cal">
@@ -967,17 +881,7 @@ select.inp { cursor: pointer; }
             <button class="btn btn-sm">Month</button>
           </div>
         </div>
-        <div class="cal-grid">
-          <div class="cal-hdr">Mon</div><div class="cal-hdr">Tue</div><div class="cal-hdr">Wed</div><div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div><div class="cal-hdr">Sun</div>
-          <div class="cal-day"><div class="cal-daynum">23</div></div>
-          <div class="cal-day busy"><div class="cal-daynum">24</div><span class="booking-chip bc-teal">Tennis A · 9am</span><span class="booking-chip bc-blue">Pool · 2pm</span></div>
-          <div class="cal-day busy"><div class="cal-daynum">25</div><span class="booking-chip bc-purple">Karaoke · 7pm</span></div>
-          <div class="cal-day"><div class="cal-daynum">26</div></div>
-          <div class="cal-day busy"><div class="cal-daynum">27</div><span class="booking-chip bc-teal">Tennis C · 8am</span><span class="booking-chip bc-purple">Function A · 6pm</span></div>
-          <div class="cal-day full"><div class="cal-daynum">28</div><span class="booking-chip bc-teal">Tennis A · 10am</span><span class="booking-chip bc-blue">Pool · all day</span><span class="booking-chip bc-purple">Karaoke · 4pm</span></div>
-          <div class="cal-day full"><div class="cal-daynum">29</div><span class="booking-chip bc-teal">Tennis B · 9am</span><span class="booking-chip bc-purple">Function A</span><span class="booking-chip bc-amber">BBQ Pit · 6pm</span></div>
-          <div class="cal-day busy"><div class="cal-daynum">30</div><span class="booking-chip bc-teal">Tennis D · 7am</span></div>
-        </div>
+        <div class="cal-grid" id="fac-cal-grid"></div>
         <div style="display:flex;gap:14px;margin-top:14px;flex-wrap:wrap">
           <div class="leg"><span class="leg-dot" style="background:var(--mx-teal)"></span> Tennis</div>
           <div class="leg"><span class="leg-dot" style="background:var(--mx-blue)"></span> Pool</div>
@@ -1021,27 +925,36 @@ select.inp { cursor: pointer; }
 
   <!-- ════ VEHICLES ════ -->
   <div class="page" id="page-vehicles">
-    <div class="card">
+    <div class="card" style="margin-bottom:16px">
       <div class="card-title"><i class="ti ti-car" aria-hidden="true"></i> Register a vehicle <span style="font-size:11px;font-weight:400;color:var(--mx-muted);margin-left:4px">— tenant self-service · max 2 vehicles per unit</span></div>
       <div class="grid2">
         <div>
-          <div class="form-row"><label class="form-label">Vehicle plate number</label><input class="inp" placeholder="e.g. SBA4411G" aria-label="Plate number"></div>
-          <div class="form-row"><label class="form-label">Vehicle make / model</label><input class="inp" placeholder="e.g. Toyota Camry" aria-label="Vehicle model"></div>
-          <div class="form-row"><label class="form-label">Vehicle type</label><select class="inp" aria-label="Vehicle type"><option>Car</option><option>Motorcycle</option><option>Van / commercial</option></select></div>
-          <div class="form-row"><label class="form-label">Registered to (unit)</label><input class="inp" placeholder="#XX-XX" aria-label="Unit number"></div>
+          <div class="form-row"><label class="form-label">Vehicle plate number</label><input class="inp" id="veh-plate" placeholder="e.g. SBA4411G" aria-label="Plate number"></div>
+          <div class="form-row"><label class="form-label">Vehicle make / model</label><input class="inp" id="veh-model" placeholder="e.g. Toyota Camry" aria-label="Vehicle model"></div>
+          <div class="form-row"><label class="form-label">Vehicle type</label><select class="inp" id="veh-type" aria-label="Vehicle type"><option>Car</option><option>Motorcycle</option><option>Van / commercial</option></select></div>
+          <div class="form-row"><label class="form-label">Registered to (unit)</label><input class="inp" id="veh-unit" placeholder="#XX-XX" aria-label="Unit number"></div>
         </div>
         <div>
           <div class="form-row">
             <label class="form-label">Log card (required for approval)</label>
-            <div class="upload-zone" role="button" tabindex="0" aria-label="Upload log card">
+            <div class="upload-zone" role="button" tabindex="0" aria-label="Upload log card" onclick="MXUtil.toast('Log card preview not stored server-side in this demo','info')">
               <i class="ti ti-upload" style="font-size:28px;color:var(--mx-muted);display:block;margin-bottom:8px" aria-hidden="true"></i>
               <div style="font-size:13px;color:var(--mx-secondary);font-weight:500">Upload log card</div>
               <div style="font-size:11px;color:var(--mx-muted);margin-top:4px">JPG, PNG or PDF · Max 5MB</div>
             </div>
           </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px"><i class="ti ti-send" aria-hidden="true"></i> Submit for MA approval</button>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="submitVehicleReg()"><i class="ti ti-send" aria-hidden="true"></i> Submit for MA approval</button>
           <div style="font-size:11px;color:var(--mx-muted);margin-top:8px;text-align:center">The MA office will review your log card and approve within 1–2 business days. You will be notified by email and in-app.</div>
         </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list" aria-hidden="true"></i> All registered vehicles</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Plate</th><th>Unit</th><th>Registered to</th><th>Type</th><th>Log card</th><th>Status</th><th></th></tr></thead>
+          <tbody id="vehicles-tbody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1116,53 +1029,135 @@ select.inp { cursor: pointer; }
   <!-- ════ REPORTS ════ -->
   <div class="page" id="page-reports">
     <div class="grid3" style="margin-bottom:16px">
-      <div class="report-card" onclick="alert('Opening fee collection report for Q2 2025…')">
+      <div class="report-card" onclick="generateReport('fees')">
         <i class="ti ti-file-analytics" style="color:var(--mx-teal)" aria-hidden="true"></i>
         <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Fee collection report</div>
         <div style="font-size:12px;color:var(--mx-secondary)">Overall & per-unit summary, filterable by period</div>
       </div>
-      <div class="report-card" onclick="alert('Opening facility utilisation report for June 2025…')">
+      <div class="report-card" onclick="generateReport('facilities')">
         <i class="ti ti-chart-bar" style="color:var(--mx-blue)" aria-hidden="true"></i>
         <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Facility utilisation</div>
         <div style="font-size:12px;color:var(--mx-secondary)">Occupancy rates by amenity and time period</div>
       </div>
-      <div class="report-card" onclick="alert('Opening access control log with anomaly detection…')">
+      <div class="report-card" onclick="generateReport('access')">
         <i class="ti ti-door-enter" style="color:var(--mx-purple)" aria-hidden="true"></i>
         <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Access control log</div>
         <div style="font-size:12px;color:var(--mx-secondary)">Entry/exit events, denials, and anomalies</div>
       </div>
-      <div class="report-card" onclick="alert('Loading overdue accounts report…')">
+      <div class="report-card" onclick="generateReport('overdue')">
         <i class="ti ti-alert-triangle" style="color:var(--mx-amber)" aria-hidden="true"></i>
         <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Overdue accounts</div>
         <div style="font-size:12px;color:var(--mx-secondary)">Units with outstanding management fees</div>
       </div>
-      <div class="report-card" onclick="alert('Opening vehicle registry report…')">
+      <div class="report-card" onclick="generateReport('vehicles')">
         <i class="ti ti-car" style="color:var(--mx-secondary)" aria-hidden="true"></i>
         <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Vehicle registry</div>
         <div style="font-size:12px;color:var(--mx-secondary)">All registered, pending, and rejected vehicles</div>
       </div>
-      <div class="report-card" onclick="alert('Generating full occupancy and tenant report…')">
+      <div class="report-card" onclick="generateReport('occupancy')">
         <i class="ti ti-home-stats" style="color:var(--mx-green)" aria-hidden="true"></i>
         <div style="font-weight:600;font-size:13px;color:var(--mx-white)">Occupancy report</div>
         <div style="font-size:12px;color:var(--mx-secondary)">Unit status, tenants, vacancies, and sub-tenants</div>
       </div>
     </div>
-    <div class="card" style="text-align:center;padding:20px;color:var(--mx-muted)">
-      <i class="ti ti-file-export" style="font-size:18px;margin-right:6px" aria-hidden="true"></i>
-      All reports export to Excel or PDF · Email delivery supported
+    <div class="card" id="report-output" style="display:none">
+      <div class="card-title" style="justify-content:space-between">
+        <span><i class="ti ti-report" aria-hidden="true"></i> <span id="report-output-title"></span></span>
+        <button class="btn btn-sm" onclick="exportCurrentReportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
+      </div>
+      <div id="report-output-table"></div>
     </div>
   </div>
 
-  <!-- ════ SETTINGS (placeholder) ════ -->
+  <!-- ════ SETTINGS ════ -->
   <div class="page" id="page-settings">
-    <div class="card">
+    <div class="card" style="margin-bottom:14px">
       <div class="card-title"><i class="ti ti-settings" aria-hidden="true"></i> System settings</div>
       <p style="color:var(--mx-secondary);font-size:13px">Property configuration, user roles, API keys, email templates, PayNow UEN setup, ANPR integration, and notification preferences.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-refresh" aria-hidden="true"></i> Demo data</div>
+      <p style="color:var(--mx-secondary);font-size:13px;margin-bottom:12px">Everything in this demo is stored in your browser's local storage. If you've been clicking around and want a clean slate, reset to the original seed data.</p>
+      <button class="btn btn-danger" onclick="resetDemoConfirm()"><i class="ti ti-trash" aria-hidden="true"></i> Reset demo data</button>
+    </div>
+  </div>
+
+  <!-- ════ MAINTENANCE ════ -->
+  <div class="page" id="page-maintenance">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Work order ticketing</div>
+      <button class="btn btn-sm btn-primary" onclick="openMaintenanceModal()"><i class="ti ti-plus" aria-hidden="true"></i> New ticket</button>
+    </div>
+    <div class="kanban-wrap" id="maintenance-kanban"></div>
+  </div>
+
+  <!-- ════ ANNOUNCEMENTS ════ -->
+  <div class="page" id="page-announcements">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Notices board</div>
+      <button class="btn btn-sm btn-primary" onclick="openAnnouncementModal()"><i class="ti ti-plus" aria-hidden="true"></i> Post notice</button>
+    </div>
+    <div id="announcements-list"></div>
+  </div>
+
+  <!-- ════ DOCUMENTS ════ -->
+  <div class="page" id="page-documents">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Document repository</div>
+      <button class="btn btn-sm btn-primary" onclick="openDocumentModal()"><i class="ti ti-upload" aria-hidden="true"></i> Add document</button>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Name</th><th>Category</th><th>Date</th><th>Size</th><th></th></tr></thead>
+        <tbody id="documents-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ════ POLLS ════ -->
+  <div class="page" id="page-polls">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Polls / AGM e-voting</div>
+      <button class="btn btn-sm btn-primary" onclick="openPollModal()"><i class="ti ti-plus" aria-hidden="true"></i> Create poll</button>
+    </div>
+    <div id="polls-list"></div>
+  </div>
+
+  <!-- ════ PARCELS ════ -->
+  <div class="page" id="page-parcels">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Parcel / delivery management</div>
+      <button class="btn btn-sm btn-primary" onclick="openParcelModal()"><i class="ti ti-plus" aria-hidden="true"></i> Log parcel</button>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Unit</th><th>Courier</th><th>Description</th><th>Received</th><th>Status</th><th></th></tr></thead>
+        <tbody id="parcels-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ════ VENDORS ════ -->
+  <div class="page" id="page-vendors">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Vendor / contractor registry</div>
+      <button class="btn btn-sm btn-primary" onclick="openVendorModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add vendor</button>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Vendor</th><th>Category</th><th>Contact</th><th>Contract expiry</th><th></th></tr></thead>
+        <tbody id="vendors-tbody"></tbody>
+      </table></div>
     </div>
   </div>
 
   </main>
 </div>
+</div>
+
+<!-- ════ Generic modal host ════ -->
+<div class="mx-modal-overlay" id="mx-modal-overlay" onclick="if(event.target===this) closeModal()">
+  <div class="mx-modal" id="mx-modal-body" onclick="event.stopPropagation()"></div>
 </div>
 
 <script>
@@ -1171,12 +1166,18 @@ const NAV = [
     {id:"dashboard", icon:"ti-layout-dashboard", label:"Dashboard"},
   ]},
   {group:"Residents", items:[
-    {id:"tenants", icon:"ti-users", label:"Owners & Tenants", badge:3, badgeClass:"nav-badge nav-badge-amber"},
+    {id:"tenants", icon:"ti-users", label:"Owners & Tenants", badgeKey:"pendingTenants"},
     {id:"vehicles", icon:"ti-car", label:"Vehicle Registry"},
   ]},
   {group:"Operations", items:[
     {id:"access", icon:"ti-shield-lock", label:"Access Control"},
     {id:"facilities", icon:"ti-building-community", label:"Facilities"},
+    {id:"maintenance", icon:"ti-tool", label:"Maintenance", badgeKey:"maintenanceOpen"},
+    {id:"announcements", icon:"ti-speakerphone", label:"Announcements"},
+    {id:"documents", icon:"ti-files", label:"Documents"},
+    {id:"polls", icon:"ti-chart-pie-2", label:"Polls / e-Voting"},
+    {id:"parcels", icon:"ti-package", label:"Parcels", badgeKey:"parcelsPending"},
+    {id:"vendors", icon:"ti-briefcase", label:"Vendors"},
   ]},
   {group:"Finance", items:[
     {id:"fees", icon:"ti-receipt", label:"Management Fees"},
@@ -1189,23 +1190,40 @@ const TITLES = {
   dashboard:"Dashboard", tenants:"Owners & Tenants",
   vehicles:"Vehicle Registry", access:"Access Control",
   facilities:"Facilities & Bookings", fees:"Management Fees",
-  payments:"Payments", reports:"Reports", settings:"Settings"
+  payments:"Payments", reports:"Reports", settings:"Settings",
+  maintenance:"Maintenance", announcements:"Announcements",
+  documents:"Documents", polls:"Polls / AGM e-Voting",
+  parcels:"Parcels & Deliveries", vendors:"Vendor Registry"
 };
 
-const root = document.getElementById('nav-root');
-NAV.forEach(g => {
-  root.innerHTML += `<div class="nav-group"><div class="nav-group-label">${g.group}</div>` +
-    g.items.map(it =>
-      `<div class="nav-item" id="nav-${it.id}" onclick="goto('${it.id}')" role="button" tabindex="0" aria-label="${it.label}">
-        <i class="ti ${it.icon}" aria-hidden="true"></i>
-        <span>${it.label}</span>
-        ${it.badge ? `<span class="${it.badgeClass}">${it.badge}</span>` : ''}
-      </div>`
-    ).join('') + '</div>';
-});
+function navBadgeCount(key) {
+  const s = MX.get();
+  if (key === 'pendingTenants') return s.pendingTenants.length;
+  if (key === 'maintenanceOpen') return s.maintenanceTickets.filter(t => t.status === 'Open').length;
+  if (key === 'parcelsPending') return s.parcels.filter(p => p.status === 'Pending collection').length;
+  return 0;
+}
+
+function renderNav() {
+  const root = document.getElementById('nav-root');
+  root.innerHTML = '';
+  NAV.forEach(g => {
+    root.innerHTML += `<div class="nav-group"><div class="nav-group-label">${g.group}</div>` +
+      g.items.map(it => {
+        const count = it.badgeKey ? navBadgeCount(it.badgeKey) : 0;
+        return `<div class="nav-item" id="nav-${it.id}" onclick="goto('${it.id}')" role="button" tabindex="0" aria-label="${it.label}">
+          <i class="ti ${it.icon}" aria-hidden="true"></i>
+          <span>${it.label}</span>
+          ${count > 0 ? `<span class="nav-badge nav-badge-amber">${count}</span>` : ''}
+        </div>`;
+      }).join('') + '</div>';
+  });
+  const cn = document.getElementById('nav-' + cur);
+  if (cn) cn.classList.add('active');
+}
 
 let cur = 'dashboard';
-document.getElementById('nav-dashboard').classList.add('active');
+renderNav();
 
 function goto(id) {
   if (!document.getElementById('page-' + id)) return;
@@ -1217,12 +1235,11 @@ function goto(id) {
   const newNav = document.getElementById('nav-' + id);
   if (newNav) newNav.classList.add('active');
   document.getElementById('pg-title').textContent = TITLES[id] || id;
+  renderPage(id);
 }
 
 // tab switcher: group prefix, tab id, event
 function st(group, tab, e) {
-  const page = document.getElementById('page-' + group) ||
-                document.querySelector('.page.active');
   const allTabs = document.querySelectorAll(`#page-${group} .tab, .page.active .tab`);
   allTabs.forEach(t => t.classList.remove('active'));
   if (e && e.target) e.target.classList.add('active');
@@ -1239,6 +1256,904 @@ document.addEventListener('keydown', e => {
     e.target.click();
   }
 });
+
+/* ════════════════════════════════════════════════════════════════
+   Generic modal helpers
+   ════════════════════════════════════════════════════════════════ */
+function openModal(title, bodyHtml) {
+  document.getElementById('mx-modal-body').innerHTML =
+    `<div class="mx-modal-title"><span>${title}</span><span class="mx-modal-close" onclick="closeModal()"><i class="ti ti-x"></i></span></div>${bodyHtml}`;
+  document.getElementById('mx-modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('mx-modal-overlay').classList.remove('open');
+}
+
+function emptyState(icon, title, sub) {
+  return `<div class="empty-state"><i class="ti ${icon}"></i><div class="empty-state-title">${title}</div><div class="empty-state-sub">${sub || ''}</div></div>`;
+}
+
+function resetDemoConfirm() {
+  if (confirm('Reset all demo data to the original seed? This clears anything you have added or changed.')) {
+    MX.resetDemoData();
+    MXUtil.toast('Demo data reset', 'info');
+    renderAll();
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Dashboard
+   ════════════════════════════════════════════════════════════════ */
+function renderDashboard() {
+  const s = MX.get();
+  const pendingBox = document.getElementById('dash-pending-approvals');
+  if (pendingBox) {
+    const items = s.pendingApprovals;
+    document.getElementById('dash-pending-count').textContent = items.length;
+    pendingBox.innerHTML = items.length ? items.map(a => `
+      <div class="stat-row">
+        <div><div style="font-weight:500">${a.type} — ${a.unit}</div><div style="font-size:11px;color:var(--mx-muted)">${a.detail} · ${a.when}</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-success" onclick="approveDashItem('${a.id}')">Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="rejectDashItem('${a.id}')">Reject</button>
+        </div>
+      </div>`).join('') : emptyState('ti-checks', 'No pending approvals', 'All caught up.');
+  }
+}
+
+function approveDashItem(id) {
+  MX.set(s => { s.pendingApprovals = s.pendingApprovals.filter(a => a.id !== id); });
+  MXUtil.toast('Approved', 'success');
+  renderDashboard(); renderNav();
+}
+function rejectDashItem(id) {
+  MX.set(s => { s.pendingApprovals = s.pendingApprovals.filter(a => a.id !== id); });
+  MXUtil.toast('Rejected', 'error');
+  renderDashboard(); renderNav();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Owners & Tenants
+   ════════════════════════════════════════════════════════════════ */
+function avatarClassFor(i) {
+  const cls = ['av-b','av-t','av-a','av-r','av-p','av-g'];
+  return cls[i % cls.length];
+}
+function initials(name) {
+  return name.split(' ').filter(Boolean).slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+function feeBadge(status) {
+  const map = { Paid: 'b-green', Partial: 'b-amber', Overdue: 'b-red' };
+  return `<span class="badge ${map[status] || 'b-gray'}">${status}</span>`;
+}
+function occBadge(t) {
+  const map = { 'Owner-occupied':'b-teal', 'Renting out':'b-blue', 'Owner overseas':'b-purple' };
+  return `<span class="badge ${map[t] || 'b-gray'}">${t}</span>`;
+}
+
+function renderTenantsTable(filterText, filterStatus, filterType) {
+  const s = MX.get();
+  filterText = (filterText || '').toLowerCase();
+  const rows = s.units.filter(u => {
+    if (filterStatus && filterStatus !== 'All statuses' && u.feeStatus !== filterStatus) return false;
+    if (filterType && filterType !== 'All types' && u.occType !== filterType) return false;
+    if (filterText && !(u.unit.toLowerCase().includes(filterText) || u.owner.toLowerCase().includes(filterText))) return false;
+    return true;
+  });
+  const tbody = document.getElementById('tenants-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7">${emptyState('ti-search-off', 'No matching units', 'Try a different search or filter.')}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((u, i) => {
+    const vehicles = MX.get().vehicles.filter(v => v.unit === u.unit).map(v => v.plate).join(' · ') || '—';
+    return `<tr>
+      <td><span class="unit-tag">${u.unit}</span></td>
+      <td><div style="display:flex;align-items:center;gap:9px"><div class="avatar ${avatarClassFor(i)}">${initials(u.owner)}</div><div><div style="font-weight:500">${u.owner}</div><div style="font-size:11px;color:var(--mx-muted)">${u.email}</div></div></div></td>
+      <td>${occBadge(u.occType)}</td>
+      <td>${u.residents} <span style="color:var(--mx-muted);font-size:11px">(${u.residentsNote})</span></td>
+      <td><span class="mono" style="font-size:11.5px">${vehicles}</span></td>
+      <td>${feeBadge(u.feeStatus)}</td>
+      <td><button class="btn btn-sm" onclick="MXUtil.toast('Opening unit ${u.unit} detail view','info')">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTenants() {
+  const text = document.getElementById('tenants-search').value;
+  const status = document.getElementById('tenants-filter-status').value;
+  const type = document.getElementById('tenants-filter-type').value;
+  renderTenantsTable(text, status, type);
+}
+
+function renderPendingTenants() {
+  const s = MX.get();
+  const box = document.getElementById('tn-pending-list');
+  if (!box) return;
+  document.getElementById('tn-pending-badge').textContent = s.pendingTenants.length;
+  box.innerHTML = s.pendingTenants.length ? s.pendingTenants.map(p => `
+    <div class="pending-item">
+      <div class="avatar ${p.avClass}" style="width:40px;height:40px;font-size:13px">${p.av}</div>
+      <div style="flex:1">
+        <div style="font-weight:500">${p.name} <span class="badge b-amber" style="margin-left:6px">${p.role}</span></div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Unit ${p.unit} · ${p.detail}</div>
+        <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">${p.when}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-success" onclick="approveTenant('${p.id}')"><i class="ti ti-check"></i> Approve</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectTenant('${p.id}')"><i class="ti ti-x"></i> Reject</button>
+      </div>
+    </div>`).join('') : emptyState('ti-checks', 'No pending tenant approvals', '');
+}
+
+function approveTenant(id) {
+  MX.set(s => { s.pendingTenants = s.pendingTenants.filter(p => p.id !== id); });
+  MXUtil.toast('Tenant approved', 'success');
+  renderPendingTenants(); renderNav();
+}
+function rejectTenant(id) {
+  MX.set(s => { s.pendingTenants = s.pendingTenants.filter(p => p.id !== id); });
+  MXUtil.toast('Tenant rejected', 'error');
+  renderPendingTenants(); renderNav();
+}
+
+function openAddUnitModal() {
+  openModal('Add unit', `
+    <div class="form-row"><label class="form-label">Unit number</label><input class="inp" id="m-unit" placeholder="e.g. #06-10"></div>
+    <div class="form-row"><label class="form-label">Owner name</label><input class="inp" id="m-owner" placeholder="Full name"></div>
+    <div class="form-row"><label class="form-label">Owner email</label><input class="inp" id="m-email" placeholder="email@example.com"></div>
+    <div class="form-row"><label class="form-label">Mobile</label><input class="inp" id="m-phone" placeholder="+65 XXXX XXXX"></div>
+    <div class="form-row"><label class="form-label">Occupancy type</label>
+      <select class="inp" id="m-occ"><option>Owner-occupied</option><option>Renting out</option><option>Owner overseas</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">Monthly fee (SGD)</label><input class="inp" id="m-fee" type="number" value="850"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitAddUnit()"><i class="ti ti-plus"></i> Add unit</button>
+  `);
+}
+function submitAddUnit() {
+  const unit = document.getElementById('m-unit');
+  const owner = document.getElementById('m-owner');
+  const email = document.getElementById('m-email');
+  const phone = document.getElementById('m-phone');
+  let ok = true;
+  [unit, owner, email].forEach(el => { MXUtil.clearFieldError(el); });
+  if (!MXUtil.validRequired(unit.value)) { MXUtil.showFieldError(unit, 'Unit number is required'); ok = false; }
+  if (!MXUtil.validRequired(owner.value)) { MXUtil.showFieldError(owner, 'Owner name is required'); ok = false; }
+  if (phone.value && !MXUtil.validSGMobile(phone.value)) { MXUtil.showFieldError(phone, 'Format: +65 XXXX XXXX'); ok = false; }
+  if (!ok) return;
+  MX.set(s => {
+    s.units.push({
+      unit: unit.value, owner: owner.value, email: email.value, phone: phone.value,
+      occType: document.getElementById('m-occ').value, residents: 1, residentsNote: '',
+      monthlyFee: Number(document.getElementById('m-fee').value) || 850, feeStatus: 'Paid'
+    });
+    s.feeRecords[unit.value] = {Jan:'unpaid',Feb:'unpaid',Mar:'unpaid',Apr:'unpaid',May:'unpaid',Jun:'unpaid',Jul:'unpaid',Aug:'unpaid',Sep:'unpaid',Oct:'unpaid',Nov:'unpaid',Dec:'unpaid'};
+  });
+  closeModal();
+  MXUtil.toast('Unit added', 'success');
+  filterTenants();
+}
+
+function importExcel() {
+  // Simulates parsing assets/import-template.txt sample rows and adding them.
+  const sample = [
+    { unit: '#06-10', owner: 'Goh Bee Choo', email: 'beechoo.g@gmail.com', phone: '+65 9111 2222', occType: 'Owner-occupied', monthlyFee: 850 },
+    { unit: '#09-05', owner: 'Farhan Aziz', email: 'farhan.a@yahoo.com', phone: '+65 9333 4444', occType: 'Renting out', monthlyFee: 850 },
+  ];
+  MX.set(s => {
+    sample.forEach(row => {
+      if (!s.units.find(u => u.unit === row.unit)) {
+        s.units.push({ ...row, residents: 1, residentsNote: '', feeStatus: 'Paid' });
+        s.feeRecords[row.unit] = {Jan:'unpaid',Feb:'unpaid',Mar:'unpaid',Apr:'unpaid',May:'unpaid',Jun:'unpaid',Jul:'unpaid',Aug:'unpaid',Sep:'unpaid',Oct:'unpaid',Nov:'unpaid',Dec:'unpaid'};
+      }
+    });
+  });
+  MXUtil.toast(`Imported ${sample.length} rows from import-template.txt`, 'success');
+  filterTenants();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Vehicle Registry
+   ════════════════════════════════════════════════════════════════ */
+function vehicleStatusBadge(status) {
+  const map = { Approved: 'b-green', 'Under review': 'b-amber', Rejected: 'b-red' };
+  return `<span class="badge ${map[status] || 'b-gray'}">${status}</span>`;
+}
+function renderVehiclesTable() {
+  const s = MX.get();
+  const rowsHtml = !s.vehicles.length ? `<tr><td colspan="7">${emptyState('ti-car','No vehicles registered','')}</td></tr>` :
+    s.vehicles.map(v => `
+    <tr>
+      <td><strong class="mono">${v.plate}</strong></td>
+      <td><span class="unit-tag">${v.unit}</span></td>
+      <td>${v.owner}</td>
+      <td>${v.type}</td>
+      <td>${v.logCard === 'Uploaded' ? '<span class="badge b-green"><i class="ti ti-file-check" style="font-size:11px"></i> Uploaded</span>' : '<span class="badge b-amber"><i class="ti ti-clock" style="font-size:11px"></i> Pending review</span>'}</td>
+      <td>${vehicleStatusBadge(v.status)}</td>
+      <td>${v.status === 'Under review' ?
+        `<div style="display:flex;gap:4px"><button class="btn btn-sm btn-success" onclick="approveVehicle('${v.plate}')">Approve</button><button class="btn btn-sm btn-danger" onclick="rejectVehicle('${v.plate}')">Reject</button></div>`
+        : `<button class="btn btn-sm" onclick="MXUtil.toast('Showing details for ${v.plate}','info')">Details</button>`}</td>
+    </tr>`).join('');
+  ['vehicles-tbody', 'vehicles-tbody-ac'].forEach(id => {
+    const tbody = document.getElementById(id);
+    if (tbody) tbody.innerHTML = rowsHtml;
+  });
+}
+function approveVehicle(plate) {
+  MX.set(s => { const v = s.vehicles.find(v => v.plate === plate); if (v) { v.status = 'Approved'; v.logCard = 'Uploaded'; } });
+  MXUtil.toast(`${plate} approved — added to ANPR registry`, 'success');
+  renderVehiclesTable();
+}
+function rejectVehicle(plate) {
+  MX.set(s => { const v = s.vehicles.find(v => v.plate === plate); if (v) v.status = 'Rejected'; });
+  MXUtil.toast(`${plate} rejected`, 'error');
+  renderVehiclesTable();
+}
+function submitVehicleReg() {
+  const plateEl = document.getElementById('veh-plate');
+  const modelEl = document.getElementById('veh-model');
+  const unitEl = document.getElementById('veh-unit');
+  MXUtil.clearFieldError(plateEl); MXUtil.clearFieldError(unitEl);
+  let ok = true;
+  if (!MXUtil.validPlate(plateEl.value)) { MXUtil.showFieldError(plateEl, 'Invalid SG plate format, e.g. SBA4411G'); ok = false; }
+  if (!MXUtil.validRequired(unitEl.value)) { MXUtil.showFieldError(unitEl, 'Unit number required'); ok = false; }
+  if (!ok) return;
+  MX.set(s => {
+    s.vehicles.push({ plate: plateEl.value.toUpperCase(), unit: unitEl.value, owner: 'Self-registered', type: document.getElementById('veh-type').value, logCard: 'Pending review', status: 'Under review' });
+  });
+  MXUtil.toast('Vehicle submitted for MA approval', 'success');
+  plateEl.value=''; modelEl.value=''; unitEl.value='';
+  renderVehiclesTable();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Access control: guests, walk-in, log
+   ════════════════════════════════════════════════════════════════ */
+function guestStatusBadge(status) {
+  const map = { Active: 'b-green', 'Pending ANPR': 'b-amber', Departed: 'b-gray' };
+  return `<span class="badge ${map[status] || 'b-gray'}">${status}</span>`;
+}
+function renderGuestsList() {
+  const box = document.getElementById('guests-list');
+  if (!box) return;
+  const s = MX.get();
+  if (!s.guests.length) { box.innerHTML = emptyState('ti-qrcode','No visitors today',''); return; }
+  box.innerHTML = s.guests.map(g => `
+    <div class="pending-item" style="${g.status==='Departed'?'opacity:.6':''}">
+      <div class="qr-preview">${g.plate ? '<i class="ti ti-car" style="font-size:22px;color:var(--mx-amber)"></i>' : MXUtil.renderQR(g.qrId, 44)}</div>
+      <div style="flex:1">
+        <div style="font-weight:500">${g.plate ? `<span class="mono">${g.plate}</span> — vehicle pass` : g.name}</div>
+        <div style="font-size:12px;color:var(--mx-secondary)">Visiting ${g.unit}${g.phone ? ' · '+g.phone : ''}</div>
+        <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Valid: ${fmtDT(g.validFrom)} – ${fmtDT(g.validTo)}</div>
+      </div>
+      ${guestStatusBadge(g.status)}
+    </div>`).join('');
+}
+function fmtDT(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d)) return v;
+  return d.toLocaleString('en-SG', { day:'2-digit', month:'short', hour:'numeric', minute:'2-digit' });
+}
+
+function submitGuestInvite() {
+  const nameEl = document.getElementById('guest-name');
+  const phoneEl = document.getElementById('guest-phone');
+  const plateEl = document.getElementById('guest-plate');
+  const fromEl = document.getElementById('guest-from');
+  const toEl = document.getElementById('guest-to');
+  [nameEl, phoneEl, plateEl].forEach(MXUtil.clearFieldError);
+  let ok = true;
+  if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Guest name required'); ok = false; }
+  if (!MXUtil.validSGMobile(phoneEl.value)) { MXUtil.showFieldError(phoneEl, 'Format: +65 XXXX XXXX'); ok = false; }
+  if (plateEl.value && !MXUtil.validPlate(plateEl.value)) { MXUtil.showFieldError(plateEl, 'Invalid plate format'); ok = false; }
+  if (!ok) return;
+  const id = MX.uid('g');
+  MX.set(s => {
+    s.guests.unshift({
+      id, name: nameEl.value, unit: '#02-14', phone: phoneEl.value, plate: plateEl.value.toUpperCase(),
+      validFrom: fromEl.value || new Date().toISOString().slice(0,16),
+      validTo: toEl.value || new Date().toISOString().slice(0,16),
+      status: plateEl.value ? 'Pending ANPR' : 'Active', qrId: 'GX-' + Date.now()
+    });
+  });
+  MXUtil.toast('QR invite sent via SMS', 'success');
+  nameEl.value=''; phoneEl.value=''; plateEl.value='';
+  renderGuestsList();
+}
+
+function renderExpectedVisitors() {
+  const tbody = document.getElementById('expected-visitors-tbody');
+  if (!tbody) return;
+  const s = MX.get();
+  const active = s.guests.filter(g => g.status !== 'Departed');
+  if (!active.length) { tbody.innerHTML = `<tr><td colspan="6">${emptyState('ti-eye','No expected visitors','')}</td></tr>`; return; }
+  tbody.innerHTML = active.map(g => `
+    <tr>
+      <td><span class="unit-tag">${g.unit}</span></td>
+      <td>${MX.get().units.find(u=>u.unit===g.unit)?.owner || '—'}</td>
+      <td>${g.plate ? `<span class="mono">${g.plate}</span>` : g.name}</td>
+      <td>${fmtDT(g.validTo)}</td>
+      <td><span class="badge ${g.plate ? 'b-amber' : 'b-teal'}">${g.plate ? 'ANPR / plate' : 'QR code'}</span></td>
+      <td><button class="btn btn-sm btn-primary" onclick="grantAccess('${g.id}')">Grant access</button></td>
+    </tr>`).join('');
+}
+function grantAccess(id) {
+  const s = MX.get();
+  const g = s.guests.find(g => g.id === id);
+  if (!g) return;
+  MX.set(s => {
+    s.accessLog.unshift({ time: new Date().toLocaleTimeString('en-SG',{hour:'numeric',minute:'2-digit'}), identity: (g.plate || g.name) + ' — manual grant', gate: 'Gate A', method: g.plate ? 'ANPR' : 'QR code', unit: g.unit, outcome: 'Granted' });
+  });
+  MXUtil.toast('Access granted', 'success');
+  renderAccessLogTable();
+}
+
+function submitWalkin() {
+  const nameEl = document.getElementById('wi-name');
+  const unitEl = document.getElementById('wi-unit');
+  MXUtil.clearFieldError(nameEl); MXUtil.clearFieldError(unitEl);
+  let ok = true;
+  if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Visitor name required'); ok = false; }
+  if (!MXUtil.validRequired(unitEl.value)) { MXUtil.showFieldError(unitEl, 'Unit required'); ok = false; }
+  if (!ok) return;
+  MX.set(s => {
+    s.guests.unshift({ id: MX.uid('g'), name: nameEl.value, unit: unitEl.value, phone: document.getElementById('wi-phone').value, plate: document.getElementById('wi-plate').value.toUpperCase(), validFrom: new Date().toISOString(), validTo: new Date(Date.now()+8*3600*1000).toISOString(), status: 'Active', qrId: 'GX-' + Date.now() });
+    s.accessLog.unshift({ time: new Date().toLocaleTimeString('en-SG',{hour:'numeric',minute:'2-digit'}), identity: nameEl.value + ' — walk-in', gate: 'Gate A', method: 'Manual', unit: unitEl.value, outcome: 'Granted' });
+  });
+  MXUtil.toast('Visitor pass registered & printed', 'success');
+  nameEl.value=''; unitEl.value=''; document.getElementById('wi-phone').value=''; document.getElementById('wi-plate').value='';
+  renderGuestsList(); renderExpectedVisitors(); renderAccessLogTable();
+}
+
+function outcomeBadge(o) {
+  const map = { Granted: 'b-green', Denied: 'b-red', Pending: 'b-amber' };
+  return `<span class="badge ${map[o] || 'b-gray'}">${o}</span>`;
+}
+function methodBadge(m) {
+  const map = { 'QR code':'b-teal', ANPR:'b-amber', 'Access card':'b-blue', Manual:'b-gray' };
+  return `<span class="badge ${map[m] || 'b-gray'}">${m}</span>`;
+}
+function renderAccessLogTable() {
+  const tbody = document.getElementById('access-log-tbody');
+  if (!tbody) return;
+  const search = (document.getElementById('log-search')?.value || '').toLowerCase();
+  const gateF = document.getElementById('log-gate-filter')?.value;
+  const outcomeF = document.getElementById('log-outcome-filter')?.value;
+  let rows = MX.get().accessLog.filter(r => {
+    if (search && !(r.identity.toLowerCase().includes(search) || r.unit.toLowerCase().includes(search))) return false;
+    if (gateF && gateF !== 'All gates' && r.gate !== gateF) return false;
+    if (outcomeF && outcomeF !== 'All outcomes' && r.outcome !== outcomeF) return false;
+    return true;
+  });
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="6">${emptyState('ti-list-search','No matching access events','')}</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr><td class="mono" style="font-size:12px">${r.time}</td><td>${r.identity}</td><td>${r.gate}</td><td>${methodBadge(r.method)}</td><td>${r.unit !== '—' ? `<span class="unit-tag">${r.unit}</span>` : '—'}</td><td>${outcomeBadge(r.outcome)}</td></tr>`).join('');
+}
+function filterAccessLog() { renderAccessLogTable(); }
+
+/* ════════════════════════════════════════════════════════════════
+   Management fees
+   ════════════════════════════════════════════════════════════════ */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function renderFeeUnitCard(unit) {
+  const s = MX.get();
+  const u = s.units.find(x => x.unit === unit);
+  if (!u) return '';
+  const rec = s.feeRecords[unit] || {};
+  const months = MONTHS.map(m => `<span class="fee-month fm-${rec[m] || 'unpaid'}">${m}</span>`).join('');
+  const paidCount = MONTHS.filter(m => rec[m] === 'paid').length;
+  const ytd = paidCount * u.monthlyFee;
+  const outstanding = u.feeStatus === 'Overdue' ? (s.monthlyCollection.length) * 0 : 0;
+  return `<div class="card" id="fee-card-${unit.replace('#','')}">
+    <div class="card-title"><i class="ti ti-user"></i> Unit ${unit} — ${u.owner} ${u.feeStatus==='Overdue'?'<span class="badge b-red" style="margin-left:6px">Overdue</span>':''}</div>
+    <div style="margin-bottom:12px">${months}</div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Monthly fee</span><strong style="color:var(--mx-white)">$${u.monthlyFee}</strong></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Paid year-to-date</span><strong style="color:var(--mx-green)">$${ytd.toLocaleString()}</strong></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-sm" onclick="MXUtil.toast('Statement generated for ${unit}','info')"><i class="ti ti-file-invoice"></i> Statement</button>
+      <button class="btn btn-sm btn-primary" onclick="openRecordPaymentModal('${unit}')"><i class="ti ti-plus"></i> Record payment</button>
+    </div>
+  </div>`;
+}
+function renderFeesPage() {
+  const box = document.getElementById('fee-unit-cards');
+  if (!box) return;
+  const s = MX.get();
+  box.innerHTML = s.units.slice(0,2).map(u => renderFeeUnitCard(u.unit)).join('');
+  renderCollectionTable();
+}
+function renderCollectionTable() {
+  const tbody = document.getElementById('collection-tbody');
+  if (!tbody) return;
+  const s = MX.get();
+  tbody.innerHTML = s.monthlyCollection.map(m => {
+    const outstanding = m.expected - m.collected;
+    const rate = ((m.collected / m.expected) * 100).toFixed(1);
+    return `<tr><td>${m.month}</td><td>$${m.expected.toLocaleString()}</td><td>$${m.collected.toLocaleString()}</td><td>$${outstanding.toLocaleString()}</td><td>${rate}%</td><td><span class="badge ${rate>96?'b-green':'b-amber'}">${rate>96?'Closed':'Open'}</span></td></tr>`;
+  }).join('');
+}
+function openRecordPaymentModal(unit) {
+  const s = MX.get();
+  const u = s.units.find(x => x.unit === unit);
+  openModal('Record payment — ' + unit, `
+    <div class="form-row"><label class="form-label">Month</label>
+      <select class="inp" id="pay-month">${MONTHS.map(m=>`<option>${m}</option>`).join('')}</select>
+    </div>
+    <div class="form-row"><label class="form-label">Amount (SGD)</label><input class="inp" id="pay-amount" type="number" value="${u.monthlyFee}"></div>
+    <div class="form-row"><label class="form-label">Method</label><select class="inp" id="pay-method"><option>PayNow</option><option>Bank transfer</option><option>Cheque</option><option>Cash</option></select></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitRecordPayment('${unit}')"><i class="ti ti-check"></i> Confirm payment</button>
+  `);
+}
+function submitRecordPayment(unit) {
+  const month = document.getElementById('pay-month').value;
+  const amount = Number(document.getElementById('pay-amount').value) || 0;
+  const method = document.getElementById('pay-method').value;
+  MX.set(s => {
+    s.feeRecords[unit][month] = 'paid';
+    const mc = s.monthlyCollection.find(m => m.month.toLowerCase().startsWith(month.toLowerCase()));
+    if (mc) mc.collected += amount;
+    s.payments.unshift({ unit, date: new Date().toLocaleDateString('en-SG',{day:'2-digit',month:'short'}), period: month+' 2025', amount, method, ref: 'RG-'+unit.replace('#','').replace('-','')+'-'+month.toUpperCase()+'25' });
+    const u = s.units.find(u => u.unit === unit);
+    if (u) u.feeStatus = 'Paid';
+  });
+  closeModal();
+  MXUtil.toast(`Payment of $${amount} recorded for ${unit}`, 'success');
+  renderFeesPage();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Facilities calendar
+   ════════════════════════════════════════════════════════════════ */
+function renderFacilityCalendar() {
+  const grid = document.getElementById('fac-cal-grid');
+  if (!grid) return;
+  const s = MX.get();
+  const days = [
+    {d:23, date:'2025-06-23'}, {d:24, date:'2025-06-24'}, {d:25, date:'2025-06-25'}, {d:26, date:'2025-06-26'},
+    {d:27, date:'2025-06-27'}, {d:28, date:'2025-06-28'}, {d:29, date:'2025-06-29'}, {d:30, date:'2025-06-30'}
+  ];
+  const hdrs = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(h => `<div class="cal-hdr">${h}</div>`).join('');
+  const cells = days.map(dy => {
+    const bookings = s.bookings.filter(b => b.date === dy.date);
+    const cls = bookings.length >= 3 ? 'full' : (bookings.length > 0 ? 'busy' : '');
+    return `<div class="cal-day ${cls}" data-date="${dy.date}" onclick="openBookingModal('${dy.date}')" style="cursor:pointer">
+      <div class="cal-daynum">${dy.d}</div>
+      ${bookings.map(b => `<span class="booking-chip ${b.cls}">${b.facility} · ${b.time}</span>`).join('')}
+    </div>`;
+  }).join('');
+  grid.innerHTML = hdrs + cells;
+}
+function openBookingModal(date) {
+  const s = MX.get();
+  openModal('New booking — ' + date, `
+    <div class="form-row"><label class="form-label">Facility</label>
+      <select class="inp" id="bk-facility">${s.facilities.filter(f=>f.status==='Active').map(f=>`<option>${f.name}</option>`).join('')}</select>
+    </div>
+    <div class="form-row"><label class="form-label">Unit</label>
+      <select class="inp" id="bk-unit">${s.units.map(u=>`<option>${u.unit}</option>`).join('')}</select>
+    </div>
+    <div class="form-row"><label class="form-label">Time slot</label><input class="inp" id="bk-time" placeholder="e.g. 4pm–5pm"></div>
+    <div id="bk-conflict-warning" style="display:none;color:var(--mx-amber);font-size:12px;margin-bottom:10px"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitBooking('${date}')"><i class="ti ti-calendar-plus"></i> Confirm booking</button>
+  `);
+}
+function submitBooking(date) {
+  const facility = document.getElementById('bk-facility').value;
+  const unit = document.getElementById('bk-unit').value;
+  const time = document.getElementById('bk-time').value;
+  if (!MXUtil.validRequired(time)) { MXUtil.showFieldError(document.getElementById('bk-time'), 'Time slot required'); return; }
+  const s = MX.get();
+  const facMeta = s.facilities.find(f => f.name === facility);
+  const maxPerUnit = facMeta ? facMeta.maxPerUnit : 0;
+  if (maxPerUnit > 0) {
+    const monthPrefix = date.slice(0,7);
+    const countThisMonth = s.bookings.filter(b => b.facility === facility && b.unit === unit && b.date.startsWith(monthPrefix)).length;
+    if (countThisMonth >= maxPerUnit) {
+      const warn = document.getElementById('bk-conflict-warning');
+      warn.style.display = 'block';
+      warn.textContent = `Conflict: ${unit} has already reached the max of ${maxPerUnit} bookings/month for ${facility}.`;
+      return;
+    }
+  }
+  const clsMap = { Sports:'bc-teal', Leisure:'bc-blue', Entertainment:'bc-purple', Event:'bc-purple', Outdoor:'bc-amber', Fitness:'bc-amber' };
+  MX.set(s => {
+    s.bookings.push({ id: MX.uid('b'), date, facility, unit, time, cls: clsMap[facMeta?.category] || 'bc-teal' });
+  });
+  closeModal();
+  MXUtil.toast('Booking confirmed', 'success');
+  renderFacilityCalendar();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Maintenance kanban
+   ════════════════════════════════════════════════════════════════ */
+function priorityBadge(p) {
+  const map = { High: 'b-red', Medium: 'b-amber', Low: 'b-gray' };
+  return `<span class="badge ${map[p] || 'b-gray'}">${p}</span>`;
+}
+function slaText(ticket) {
+  const hours = { High: 4, Medium: 24, Low: 72 }[ticket.priority] || 24;
+  return ticket.status === 'Resolved' ? 'Resolved' : `SLA: ${hours}h target`;
+}
+function renderMaintenanceKanban() {
+  const box = document.getElementById('maintenance-kanban');
+  if (!box) return;
+  const s = MX.get();
+  const cols = ['Open', 'In progress', 'Resolved'];
+  box.innerHTML = cols.map(col => {
+    const items = s.maintenanceTickets.filter(t => t.status === col);
+    return `<div>
+      <div class="kanban-col-title"><span>${col}</span><span>${items.length}</span></div>
+      ${items.length ? items.map(t => `
+        <div class="kanban-card">
+          <div class="kanban-card-title">${t.category} — ${t.unit}</div>
+          <div class="kanban-card-meta">${t.desc}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            ${priorityBadge(t.priority)}<span class="sla-timer" style="color:var(--mx-muted)">${slaText(t)}</span>
+          </div>
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:8px">${t.vendor ? 'Assigned: '+t.vendor : 'Unassigned'}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${col !== 'Resolved' ? `<button class="btn btn-sm" onclick="assignVendorPrompt('${t.id}')">Assign vendor</button>` : ''}
+            ${col === 'Open' ? `<button class="btn btn-sm btn-primary" onclick="advanceTicket('${t.id}','In progress')">Start</button>` : ''}
+            ${col === 'In progress' ? `<button class="btn btn-sm btn-success" onclick="advanceTicket('${t.id}','Resolved')">Resolve</button>` : ''}
+          </div>
+        </div>`).join('') : emptyState('ti-circle-check', 'Nothing here', '')}
+    </div>`;
+  }).join('');
+}
+function advanceTicket(id, status) {
+  MX.set(s => { const t = s.maintenanceTickets.find(t => t.id === id); if (t) t.status = status; });
+  MXUtil.toast('Ticket moved to ' + status, 'success');
+  renderMaintenanceKanban(); renderNav();
+}
+function assignVendorPrompt(id) {
+  const s = MX.get();
+  const name = prompt('Assign vendor/contractor:', s.vendors[0]?.name || '');
+  if (!name) return;
+  MX.set(s => { const t = s.maintenanceTickets.find(t => t.id === id); if (t) t.vendor = name; });
+  MXUtil.toast('Vendor assigned: ' + name, 'success');
+  renderMaintenanceKanban();
+}
+function openMaintenanceModal() {
+  openModal('New maintenance ticket', `
+    <div class="form-row"><label class="form-label">Unit</label><input class="inp" id="mt-unit" placeholder="e.g. #02-14"></div>
+    <div class="form-row"><label class="form-label">Category</label>
+      <select class="inp" id="mt-category"><option>Plumbing</option><option>Electrical</option><option>Lift</option><option>Pest control</option><option>Aircon</option><option>Other</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">Description</label><input class="inp" id="mt-desc" placeholder="Describe the issue"></div>
+    <div class="form-row"><label class="form-label">Priority</label><select class="inp" id="mt-priority"><option>Medium</option><option>High</option><option>Low</option></select></div>
+    <div class="form-row"><label class="form-label">Photo (optional)</label><input class="inp" id="mt-photo" type="file" accept="image/*"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitMaintenanceTicket()"><i class="ti ti-send"></i> Raise ticket</button>
+  `);
+}
+function submitMaintenanceTicket() {
+  const unitEl = document.getElementById('mt-unit');
+  const descEl = document.getElementById('mt-desc');
+  MXUtil.clearFieldError(unitEl); MXUtil.clearFieldError(descEl);
+  let ok = true;
+  if (!MXUtil.validRequired(unitEl.value)) { MXUtil.showFieldError(unitEl, 'Unit required'); ok = false; }
+  if (!MXUtil.validRequired(descEl.value)) { MXUtil.showFieldError(descEl, 'Description required'); ok = false; }
+  if (!ok) return;
+  MX.set(s => {
+    s.maintenanceTickets.unshift({ id: MX.uid('mt'), unit: unitEl.value, category: document.getElementById('mt-category').value, desc: descEl.value, priority: document.getElementById('mt-priority').value, status: 'Open', vendor: '', raised: 'just now', photo: null });
+  });
+  closeModal();
+  MXUtil.toast('Ticket raised', 'success');
+  renderMaintenanceKanban(); renderNav();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Announcements
+   ════════════════════════════════════════════════════════════════ */
+function renderAnnouncements() {
+  const box = document.getElementById('announcements-list');
+  if (!box) return;
+  const s = MX.get();
+  box.innerHTML = s.announcements.length ? s.announcements.map(a => `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:600;color:var(--mx-white);font-size:13.5px">${a.title} ${a.priority==='High'?'<span class="badge b-red" style="margin-left:6px">Urgent</span>':''}</div>
+          <div style="font-size:11px;color:var(--mx-muted);margin:4px 0 8px">Audience: ${a.audience} · Posted ${a.posted}</div>
+          <div style="font-size:13px;color:var(--mx-secondary)">${a.body}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteAnnouncement('${a.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`).join('') : emptyState('ti-speakerphone', 'No notices posted', '');
+}
+function deleteAnnouncement(id) {
+  MX.set(s => { s.announcements = s.announcements.filter(a => a.id !== id); });
+  MXUtil.toast('Notice removed', 'info');
+  renderAnnouncements();
+}
+function openAnnouncementModal() {
+  openModal('Post a notice', `
+    <div class="form-row"><label class="form-label">Title</label><input class="inp" id="an-title" placeholder="e.g. Lift maintenance"></div>
+    <div class="form-row"><label class="form-label">Body</label><textarea class="inp" id="an-body" rows="3" placeholder="Notice details"></textarea></div>
+    <div class="form-row"><label class="form-label">Priority</label><select class="inp" id="an-priority"><option>Normal</option><option>High</option></select></div>
+    <div class="form-row"><label class="form-label">Audience</label><select class="inp" id="an-audience"><option>All</option><option>Tower A</option><option>Tower B</option><option>Specific unit</option></select></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitAnnouncement()"><i class="ti ti-send"></i> Post notice</button>
+  `);
+}
+function submitAnnouncement() {
+  const titleEl = document.getElementById('an-title');
+  const bodyEl = document.getElementById('an-body');
+  MXUtil.clearFieldError(titleEl); MXUtil.clearFieldError(bodyEl);
+  let ok = true;
+  if (!MXUtil.validRequired(titleEl.value)) { MXUtil.showFieldError(titleEl, 'Title required'); ok = false; }
+  if (!MXUtil.validRequired(bodyEl.value)) { MXUtil.showFieldError(bodyEl, 'Body required'); ok = false; }
+  if (!ok) return;
+  MX.set(s => {
+    s.announcements.unshift({ id: MX.uid('an'), title: titleEl.value, body: bodyEl.value, priority: document.getElementById('an-priority').value === 'High' ? 'High' : 'Normal', audience: document.getElementById('an-audience').value, posted: new Date().toLocaleDateString('en-SG',{day:'2-digit',month:'short',year:'numeric'}) });
+  });
+  closeModal();
+  MXUtil.toast('Notice posted', 'success');
+  renderAnnouncements();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Documents
+   ════════════════════════════════════════════════════════════════ */
+function renderDocuments() {
+  const tbody = document.getElementById('documents-tbody');
+  if (!tbody) return;
+  const s = MX.get();
+  if (!s.documents.length) { tbody.innerHTML = `<tr><td colspan="5">${emptyState('ti-files','No documents','')}</td></tr>`; return; }
+  tbody.innerHTML = s.documents.map(d => `
+    <tr><td>${d.name}</td><td><span class="badge b-blue">${d.category}</span></td><td>${d.date}</td><td>${d.size}</td>
+    <td><button class="btn btn-sm" onclick="MXUtil.toast('Downloading ${d.name} (demo placeholder file)','info')"><i class="ti ti-download"></i> Download</button></td></tr>`).join('');
+}
+function openDocumentModal() {
+  openModal('Add document', `
+    <div class="form-row"><label class="form-label">Document name</label><input class="inp" id="doc-name" placeholder="e.g. Fire safety certificate"></div>
+    <div class="form-row"><label class="form-label">Category</label><select class="inp" id="doc-category"><option>By-laws</option><option>AGM minutes</option><option>Insurance</option><option>Financial statements</option><option>Other</option></select></div>
+    <div class="form-row"><label class="form-label">File</label><input class="inp" id="doc-file" type="file"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitDocument()"><i class="ti ti-upload"></i> Upload</button>
+  `);
+}
+function submitDocument() {
+  const nameEl = document.getElementById('doc-name');
+  MXUtil.clearFieldError(nameEl);
+  if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Name required'); return; }
+  const fileInput = document.getElementById('doc-file');
+  const size = fileInput.files && fileInput.files[0] ? Math.round(fileInput.files[0].size/1024) + ' KB' : '— KB';
+  MX.set(s => {
+    s.documents.unshift({ id: MX.uid('d'), name: nameEl.value, category: document.getElementById('doc-category').value, date: new Date().toISOString().slice(0,10), size });
+  });
+  closeModal();
+  MXUtil.toast('Document added', 'success');
+  renderDocuments();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Polls / AGM e-voting
+   ════════════════════════════════════════════════════════════════ */
+function renderPolls() {
+  const box = document.getElementById('polls-list');
+  if (!box) return;
+  const s = MX.get();
+  const user = MX.currentUser();
+  box.innerHTML = s.polls.length ? s.polls.map(p => {
+    const total = p.options.reduce((a,o) => a + o.votes, 0) || 1;
+    const hasVoted = !!p.voters[user];
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-title"><i class="ti ti-chart-pie-2"></i> ${p.title} <span class="badge ${p.status==='Open'?'b-green':'b-gray'}" style="margin-left:6px">${p.status}</span></div>
+      ${p.options.map((o,i) => `
+        <div class="poll-bar-row">
+          <div class="poll-bar-label"><span>${o.label}</span><span>${o.votes} (${Math.round(o.votes/total*100)}%)</span></div>
+          <div class="poll-bar-bg"><div class="poll-bar-fill" style="width:${(o.votes/total*100).toFixed(1)}%"></div></div>
+        </div>`).join('')}
+      ${p.status === 'Open' ? (hasVoted ? '<div style="font-size:12px;color:var(--mx-muted);margin-top:8px">You have voted on this poll.</div>' :
+        `<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">${p.options.map((o,i)=>`<button class="btn btn-sm btn-primary" onclick="castVote('${p.id}',${i})">${o.label}</button>`).join('')}</div>`)
+        : '<div style="font-size:12px;color:var(--mx-muted);margin-top:8px">Voting closed.</div>'}
+    </div>`;
+  }).join('') : emptyState('ti-chart-pie-2', 'No polls created', '');
+}
+function castVote(pollId, optIndex) {
+  const user = MX.currentUser();
+  const s = MX.get();
+  const poll = s.polls.find(p => p.id === pollId);
+  if (poll.voters[user]) { MXUtil.toast('You have already voted', 'error'); return; }
+  MX.set(s => {
+    const p = s.polls.find(p => p.id === pollId);
+    p.options[optIndex].votes++;
+    p.voters[user] = optIndex;
+  });
+  MXUtil.toast('Vote recorded', 'success');
+  renderPolls();
+}
+function openPollModal() {
+  openModal('Create poll', `
+    <div class="form-row"><label class="form-label">Question / title</label><input class="inp" id="poll-title" placeholder="e.g. Approve AGM budget"></div>
+    <div class="form-row"><label class="form-label">Options (comma separated)</label><input class="inp" id="poll-options" placeholder="Approve, Reject, Abstain"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitPoll()"><i class="ti ti-plus"></i> Create poll</button>
+  `);
+}
+function submitPoll() {
+  const titleEl = document.getElementById('poll-title');
+  const optsEl = document.getElementById('poll-options');
+  MXUtil.clearFieldError(titleEl); MXUtil.clearFieldError(optsEl);
+  let ok = true;
+  if (!MXUtil.validRequired(titleEl.value)) { MXUtil.showFieldError(titleEl, 'Title required'); ok = false; }
+  const opts = optsEl.value.split(',').map(s => s.trim()).filter(Boolean);
+  if (opts.length < 2) { MXUtil.showFieldError(optsEl, 'Provide at least 2 options'); ok = false; }
+  if (!ok) return;
+  MX.set(s => {
+    s.polls.unshift({ id: MX.uid('p'), title: titleEl.value, status: 'Open', options: opts.map(label => ({label, votes:0})), voters: {} });
+  });
+  closeModal();
+  MXUtil.toast('Poll created', 'success');
+  renderPolls();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Parcels
+   ════════════════════════════════════════════════════════════════ */
+function renderParcels() {
+  const tbody = document.getElementById('parcels-tbody');
+  if (!tbody) return;
+  const s = MX.get();
+  if (!s.parcels.length) { tbody.innerHTML = `<tr><td colspan="6">${emptyState('ti-package','No parcels logged','')}</td></tr>`; return; }
+  tbody.innerHTML = s.parcels.map(p => `
+    <tr><td><span class="unit-tag">${p.unit}</span></td><td>${p.courier}</td><td>${p.desc}</td><td>${p.received}</td>
+    <td><span class="badge ${p.status==='Collected'?'b-green':'b-amber'}">${p.status}</span></td>
+    <td>${p.status==='Pending collection' ? `<button class="btn btn-sm btn-success" onclick="markCollected('${p.id}')">Mark collected</button>` : '—'}</td></tr>`).join('');
+}
+function markCollected(id) {
+  MX.set(s => { const p = s.parcels.find(p => p.id === id); if (p) p.status = 'Collected'; });
+  MXUtil.toast('Marked as collected', 'success');
+  renderParcels(); renderNav();
+}
+function openParcelModal() {
+  const s = MX.get();
+  openModal('Log a parcel', `
+    <div class="form-row"><label class="form-label">Unit</label>
+      <select class="inp" id="pa-unit">${s.units.map(u=>`<option>${u.unit}</option>`).join('')}</select>
+    </div>
+    <div class="form-row"><label class="form-label">Courier</label><input class="inp" id="pa-courier" placeholder="e.g. Ninja Van"></div>
+    <div class="form-row"><label class="form-label">Description</label><input class="inp" id="pa-desc" placeholder="e.g. 1 box"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitParcel()"><i class="ti ti-package"></i> Log & notify resident</button>
+  `);
+}
+function submitParcel() {
+  const courierEl = document.getElementById('pa-courier');
+  MXUtil.clearFieldError(courierEl);
+  if (!MXUtil.validRequired(courierEl.value)) { MXUtil.showFieldError(courierEl, 'Courier required'); return; }
+  MX.set(s => {
+    s.parcels.unshift({ id: MX.uid('pa'), unit: document.getElementById('pa-unit').value, courier: courierEl.value, desc: document.getElementById('pa-desc').value || '1 item', received: new Date().toLocaleString('en-SG',{day:'2-digit',month:'short',hour:'numeric',minute:'2-digit'}), status: 'Pending collection' });
+  });
+  closeModal();
+  MXUtil.toast('Parcel logged — resident notified', 'success');
+  renderParcels(); renderNav();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Vendors
+   ════════════════════════════════════════════════════════════════ */
+function daysUntil(dateStr) {
+  return Math.round((new Date(dateStr) - new Date('2025-06-24')) / 86400000);
+}
+function renderVendors() {
+  const tbody = document.getElementById('vendors-tbody');
+  if (!tbody) return;
+  const s = MX.get();
+  if (!s.vendors.length) { tbody.innerHTML = `<tr><td colspan="5">${emptyState('ti-briefcase','No vendors registered','')}</td></tr>`; return; }
+  tbody.innerHTML = s.vendors.map(v => {
+    const d = daysUntil(v.contractExpiry);
+    const soon = d >= 0 && d <= 60;
+    return `<tr class="${soon?'renewal-soon':''}"><td>${v.name}</td><td><span class="badge b-blue">${v.category}</span></td><td>${v.contact}</td>
+      <td>${v.contractExpiry} ${soon ? '<span class="badge b-amber" style="margin-left:6px">Renewal due soon</span>' : ''}</td>
+      <td><button class="btn btn-sm" onclick="MXUtil.toast('Opening vendor profile for ${v.name}','info')">Details</button></td></tr>`;
+  }).join('');
+}
+function openVendorModal() {
+  openModal('Add vendor', `
+    <div class="form-row"><label class="form-label">Name</label><input class="inp" id="ven-name" placeholder="e.g. CleanCo Pte Ltd"></div>
+    <div class="form-row"><label class="form-label">Category</label><select class="inp" id="ven-category"><option>Cleaning</option><option>Security</option><option>Lift maintenance</option><option>Landscaping</option><option>Electrical</option><option>Plumbing</option><option>Other</option></select></div>
+    <div class="form-row"><label class="form-label">Contact</label><input class="inp" id="ven-contact" placeholder="+65 XXXX XXXX"></div>
+    <div class="form-row"><label class="form-label">Contract expiry</label><input class="inp" id="ven-expiry" type="date"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitVendor()"><i class="ti ti-plus"></i> Add vendor</button>
+  `);
+}
+function submitVendor() {
+  const nameEl = document.getElementById('ven-name');
+  MXUtil.clearFieldError(nameEl);
+  if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Name required'); return; }
+  MX.set(s => {
+    s.vendors.push({ id: MX.uid('v'), name: nameEl.value, category: document.getElementById('ven-category').value, contact: document.getElementById('ven-contact').value, contractExpiry: document.getElementById('ven-expiry').value || '2026-01-01' });
+  });
+  closeModal();
+  MXUtil.toast('Vendor added', 'success');
+  renderVendors();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Reports
+   ════════════════════════════════════════════════════════════════ */
+function generateReport(type) {
+  const s = MX.get();
+  let title = '', rows = [], headerRow = [];
+  if (type === 'fees') {
+    title = 'Fee collection report';
+    headerRow = ['Month','Expected','Collected','Outstanding','Rate'];
+    rows = s.monthlyCollection.map(m => [m.month, m.expected, m.collected, m.expected-m.collected, ((m.collected/m.expected)*100).toFixed(1)+'%']);
+  } else if (type === 'facilities') {
+    title = 'Facility utilisation report';
+    headerRow = ['Facility','Category','Capacity','Status'];
+    rows = s.facilities.map(f => [f.name, f.category, f.capacity, f.status]);
+  } else if (type === 'access') {
+    title = 'Access control log';
+    headerRow = ['Time','Identity','Gate','Method','Unit','Outcome'];
+    rows = s.accessLog.map(r => [r.time, r.identity, r.gate, r.method, r.unit, r.outcome]);
+  } else if (type === 'overdue') {
+    title = 'Overdue accounts report';
+    headerRow = ['Unit','Owner','Fee status','Monthly fee'];
+    rows = s.units.filter(u => u.feeStatus === 'Overdue' || u.feeStatus === 'Partial').map(u => [u.unit, u.owner, u.feeStatus, u.monthlyFee]);
+  } else if (type === 'vehicles') {
+    title = 'Vehicle registry report';
+    headerRow = ['Plate','Unit','Owner','Type','Status'];
+    rows = s.vehicles.map(v => [v.plate, v.unit, v.owner, v.type, v.status]);
+  } else if (type === 'occupancy') {
+    title = 'Occupancy report';
+    headerRow = ['Unit','Owner','Occupancy type','Residents','Fee status'];
+    rows = s.units.map(u => [u.unit, u.owner, u.occType, u.residents, u.feeStatus]);
+  }
+  window.currentReport = { title, headerRow, rows };
+  const tbl = `<table><thead><tr>${headerRow.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.length ? rows.map(r => `<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headerRow.length}">${emptyState('ti-report','No data for this report','')}</td></tr>`
+  }</tbody></table>`;
+  document.getElementById('report-output-title').textContent = title;
+  document.getElementById('report-output-table').innerHTML = `<div class="tbl-wrap">${tbl}</div>`;
+  document.getElementById('report-output').style.display = 'block';
+  document.getElementById('report-output').scrollIntoView({ behavior: 'smooth' });
+}
+function exportCurrentReportCSV() {
+  if (!window.currentReport) return;
+  MXUtil.exportCSV(window.currentReport.title.replace(/\s+/g,'_')+'.csv', [window.currentReport.headerRow, ...window.currentReport.rows]);
+  MXUtil.toast('CSV exported', 'success');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Payments page (MA portal — PayNow QR generation)
+   ════════════════════════════════════════════════════════════════ */
+function renderPaymentsPage() {
+  const qrBox = document.getElementById('ma-paynow-qr');
+  if (!qrBox) return;
+  const payload = MXUtil.buildPayNowPayload('202411234A', 850, 'RG-0214-JUN25');
+  qrBox.innerHTML = MXUtil.renderQR(payload, 130);
+  const tbody = document.getElementById('ma-payment-history-tbody');
+  const s = MX.get();
+  tbody.innerHTML = s.payments.length ? s.payments.map(p => `
+    <tr><td>${p.date}</td><td>${p.period}</td><td>$${p.amount}</td><td><span class="badge b-teal">${p.method}</span></td><td class="mono" style="font-size:11px">${p.ref}</td></tr>`).join('')
+    : `<tr><td colspan="5">${emptyState('ti-history','No payment history','')}</td></tr>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Page render dispatcher — runs whenever a page becomes active,
+   so it always reflects current store state.
+   ════════════════════════════════════════════════════════════════ */
+function renderPage(id) {
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'tenants') { filterTenants(); renderPendingTenants(); }
+  if (id === 'vehicles') renderVehiclesTable();
+  if (id === 'access') { renderGuestsList(); renderExpectedVisitors(); renderAccessLogTable(); renderVehiclesTable(); }
+  if (id === 'facilities') renderFacilityCalendar();
+  if (id === 'fees') renderFeesPage();
+  if (id === 'payments') renderPaymentsPage();
+  if (id === 'maintenance') renderMaintenanceKanban();
+  if (id === 'announcements') renderAnnouncements();
+  if (id === 'documents') renderDocuments();
+  if (id === 'polls') renderPolls();
+  if (id === 'parcels') renderParcels();
+  if (id === 'vendors') renderVendors();
+}
+function renderAll() {
+  renderNav();
+  renderPage(cur);
+}
+renderAll();
 </script>
 </body>
 </html>

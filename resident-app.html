@@ -6,6 +6,8 @@
 <title>ManAgeX — Resident App</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="assets/app-state.js"></script>
+<script src="assets/app-utils.js"></script>
 <style>
 :root {
   --mx-bg: #0D0F12;
@@ -170,8 +172,8 @@ body {
     <div class="view active" id="view-home">
       <div class="app-header">
         <div class="header-row">
-          <div class="greeting">Hello, Rajesh 👋</div>
-          <span class="unit-tag" style="font-family:'Courier New';font-size:12px;font-weight:700;background:#00C9A720;color:#00C9A7;border:1px solid #00C9A730;padding:4px 10px;border-radius:20px">#02-14</span>
+          <div class="greeting" id="home-greeting">Hello 👋</div>
+          <span class="unit-tag" id="home-unit-tag" style="font-family:'Courier New';font-size:12px;font-weight:700;background:#00C9A720;color:#00C9A7;border:1px solid #00C9A730;padding:4px 10px;border-radius:20px"></span>
         </div>
         <div class="sub-greeting">Riviera Gardens · Bishan</div>
       </div>
@@ -185,70 +187,22 @@ body {
 
       <div class="section">
         <div class="section-label">Management fee</div>
-        <div class="fee-hero">
-          <div class="fee-month-label">June 2025</div>
-          <div class="fee-amount">$850</div>
-          <div class="fee-status-row">
-            <div>
-              <div class="fee-pill">Paid ✓</div>
-            </div>
-            <div style="font-size:12px;color:var(--mx-secondary);text-align:right">All 2025 fees<br>up to date</div>
-          </div>
-          <div class="months-row">
-            <span class="mo mo-paid">Jan</span><span class="mo mo-paid">Feb</span><span class="mo mo-paid">Mar</span>
-            <span class="mo mo-paid">Apr</span><span class="mo mo-paid">May</span><span class="mo mo-paid">Jun</span>
-            <span class="mo mo-unpaid">Jul</span><span class="mo mo-unpaid">Aug</span><span class="mo mo-unpaid">Sep</span>
-            <span class="mo mo-unpaid">Oct</span><span class="mo mo-unpaid">Nov</span><span class="mo mo-unpaid">Dec</span>
-          </div>
-        </div>
+        <div class="fee-hero" id="home-fee-hero"></div>
       </div>
 
       <div class="section">
         <div class="section-label">Active guest passes</div>
-        <div class="card">
-          <div class="access-item">
-            <div class="access-icon" style="background:var(--mx-teal-dim);color:var(--mx-teal)"><i class="ti ti-qrcode" aria-hidden="true"></i></div>
-            <div class="access-info">
-              <div class="access-name">David Tan Wei Ming</div>
-              <div class="access-sub">Today until 11:00pm · QR sent via SMS</div>
-            </div>
-            <span class="badge b-green">Active</span>
-          </div>
-          <div class="access-item">
-            <div class="access-icon" style="background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-car" aria-hidden="true"></i></div>
-            <div class="access-info">
-              <div class="access-name" style="font-family:'Courier New';letter-spacing:.04em">SJK4521T</div>
-              <div class="access-sub">Vehicle pass · Today until 6:00pm</div>
-            </div>
-            <span class="badge b-amber">ANPR</span>
-          </div>
-        </div>
+        <div class="card" id="home-guest-passes"></div>
       </div>
 
       <div class="section">
         <div class="section-label">Recent activity</div>
-        <div class="card">
-          <div class="access-item">
-            <div class="access-icon" style="background:var(--mx-green-dim);color:var(--mx-green)"><i class="ti ti-door-enter" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">David Tan — entered</div><div class="access-sub">Gate A · 10:41am today</div></div>
-          </div>
-          <div class="access-item">
-            <div class="access-icon" style="background:var(--mx-green-dim);color:var(--mx-green)"><i class="ti ti-receipt" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">June fee paid — $850</div><div class="access-sub">PayNow · 1 Jun · Ref: RG-0214-JUN25</div></div>
-          </div>
-          <div class="access-item">
-            <div class="access-icon" style="background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-tennisball" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">Tennis Court A booked</div><div class="access-sub">Sat 28 Jun · 10:00–11:00am</div></div>
-          </div>
-        </div>
+        <div class="card" id="home-recent-activity"></div>
       </div>
 
       <div class="section">
         <div class="section-label">Notices</div>
-        <div class="card" style="display:flex;gap:10px;align-items:flex-start">
-          <div style="width:36px;height:36px;background:var(--mx-amber-dim);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;color:var(--mx-amber)"><i class="ti ti-speakerphone" aria-hidden="true"></i></div>
-          <div><div style="font-weight:500;font-size:13px;color:var(--mx-white)">BBQ Pits — maintenance</div><div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">BBQ Pits 1–3 will be closed 25–27 Jun for deck resurfacing. Bookings during this period have been cancelled and refunded.</div></div>
-        </div>
+        <div id="home-notices"></div>
       </div>
     </div>
 
@@ -263,31 +217,20 @@ body {
 
       <div class="section">
         <div class="section-label">Active & upcoming</div>
-        <div class="card">
-          <div class="access-item">
-            <div class="access-icon qa-teal" style="width:40px;height:40px"><i class="ti ti-qrcode" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">David Tan Wei Ming</div><div class="access-sub">Today · 10am–11pm · QR active</div></div>
-            <button onclick="document.getElementById('qr-overlay').classList.add('open')" style="background:var(--mx-teal-dim);color:var(--mx-teal);border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">View QR</button>
-          </div>
-          <div class="access-item">
-            <div class="access-icon" style="width:40px;height:40px;background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-car" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name" style="font-family:monospace">SJK4521T</div><div class="access-sub">Vehicle pass · Today 8am–6pm</div></div>
-            <span class="badge b-amber">ANPR</span>
-          </div>
-        </div>
+        <div class="card" id="guests-active-list"></div>
       </div>
 
       <div class="section">
         <div class="section-label">Invite a guest</div>
         <div class="card">
-          <input class="inp" placeholder="Guest name" aria-label="Guest name">
-          <input class="inp" placeholder="Mobile number (+65 XXXX XXXX)" aria-label="Mobile">
-          <input class="inp" placeholder="Car plate (optional — for ANPR)" aria-label="Car plate">
+          <input class="inp" id="rg-name" placeholder="Guest name" aria-label="Guest name">
+          <input class="inp" id="rg-phone" placeholder="Mobile number (+65 XXXX XXXX)" aria-label="Mobile">
+          <input class="inp" id="rg-plate" placeholder="Car plate (optional — for ANPR)" aria-label="Car plate">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">From</div><input class="inp" type="date" style="margin-bottom:0" aria-label="From"></div>
-            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Until</div><input class="inp" type="date" style="margin-bottom:0" aria-label="Until"></div>
+            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">From</div><input class="inp" id="rg-from" type="datetime-local" style="margin-bottom:0" aria-label="From"></div>
+            <div><div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Until</div><input class="inp" id="rg-to" type="datetime-local" style="margin-bottom:0" aria-label="Until"></div>
           </div>
-          <button class="pay-btn" style="margin-top:14px"><i class="ti ti-send" aria-hidden="true"></i> Send QR pass via SMS</button>
+          <button class="pay-btn" style="margin-top:14px" onclick="sendGuestInvite()"><i class="ti ti-send" aria-hidden="true"></i> Send QR pass via SMS</button>
         </div>
       </div>
     </div>
@@ -302,50 +245,25 @@ body {
       </div>
       <div class="section">
         <div class="card" style="text-align:center;padding:24px">
-          <div style="font-size:13px;color:var(--mx-secondary)">Unit #02-14 · July 2025</div>
-          <div style="font-size:42px;font-weight:700;color:var(--mx-white);margin:10px 0">$850</div>
+          <div style="font-size:13px;color:var(--mx-secondary)" id="pay-unit-period"></div>
+          <div style="font-size:42px;font-weight:700;color:var(--mx-white);margin:10px 0" id="pay-amount"></div>
           <div style="font-size:12px;color:var(--mx-secondary);margin-bottom:24px">Due by 31 Jul 2025</div>
 
           <div style="border:2px solid #D4537E;border-radius:var(--r-lg);padding:22px;background:#fff;margin-bottom:18px">
             <div style="font-size:14px;font-weight:700;color:#D4537E;margin-bottom:14px">PayNow</div>
-            <svg width="150" height="150" viewBox="0 0 130 130" style="display:block;margin:0 auto 12px">
-              <rect width="130" height="130" fill="white"/>
-              <rect x="8" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
-              <rect x="14" y="14" width="32" height="32" fill="#444"/>
-              <rect x="78" y="8" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
-              <rect x="84" y="14" width="32" height="32" fill="#444"/>
-              <rect x="8" y="78" width="44" height="44" rx="2" fill="none" stroke="#222" stroke-width="3"/>
-              <rect x="14" y="84" width="32" height="32" fill="#444"/>
-              <rect x="60" y="60" width="10" height="10" fill="#444"/>
-              <rect x="76" y="60" width="8" height="8" fill="#444"/>
-              <rect x="90" y="60" width="12" height="10" fill="#444"/>
-              <rect x="106" y="60" width="8" height="8" fill="#444"/>
-              <rect x="60" y="76" width="8" height="8" fill="#444"/>
-              <rect x="78" y="76" width="12" height="12" fill="#444"/>
-              <rect x="98" y="76" width="8" height="8" fill="#444"/>
-              <rect x="60" y="92" width="10" height="10" fill="#444"/>
-              <rect x="76" y="92" width="8" height="8" fill="#444"/>
-              <rect x="90" y="90" width="12" height="12" fill="#444"/>
-              <rect x="60" y="108" width="8" height="10" fill="#444"/>
-              <rect x="78" y="108" width="10" height="10" fill="#444"/>
-              <rect x="94" y="108" width="8" height="10" fill="#444"/>
-              <rect x="108" y="108" width="14" height="10" fill="#444"/>
-            </svg>
+            <div id="pay-qr-box" style="display:flex;justify-content:center;margin-bottom:12px"></div>
             <div style="font-size:13px;font-weight:700;color:#222">UEN: 202411234A</div>
-            <div style="font-size:11px;color:#666;margin-top:3px">Ref: RG-0214-JUL25</div>
+            <div style="font-size:11px;color:#666;margin-top:3px" id="pay-ref"></div>
             <div style="font-size:10px;color:#999;margin-top:8px">Scan with DBS, OCBC, UOB, or any banking app</div>
           </div>
 
-          <button class="btn-secondary"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit card — coming soon</button>
+          <button class="pay-btn" onclick="markFeePaid()"><i class="ti ti-check" aria-hidden="true"></i> Mark as paid (simulate)</button>
+          <button class="btn-secondary" style="margin-top:10px"><i class="ti ti-credit-card" aria-hidden="true"></i> Credit card — coming soon</button>
         </div>
 
         <div style="margin-top:14px">
           <div class="section-label">Payment history</div>
-          <div class="card">
-            <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">Jun 2025 <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">1 Jun</span></div><strong>$850</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>
-            <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">May 2025 <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">1 May</span></div><strong>$850</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>
-            <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">Apr 2025 <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">2 Apr</span></div><strong>$850</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>
-          </div>
+          <div class="card" id="pay-history-list"></div>
         </div>
       </div>
     </div>
@@ -359,22 +277,22 @@ body {
         <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Book a facility</div>
       </div>
       <div class="section">
-        <div class="section-label">Available today — 24 Jun</div>
-        <div class="booking-slot"><span class="slot-dot slot-avail"></span><div><div class="slot-name">Tennis Court A</div><div class="slot-detail">7am–9am, 11am–10pm available</div></div></div>
-        <div class="booking-slot"><span class="slot-dot slot-partial"></span><div><div class="slot-name">Tennis Court B</div><div class="slot-detail">7am–7pm available · 7pm–10pm booked</div></div></div>
-        <div class="booking-slot"><span class="slot-dot slot-avail"></span><div><div class="slot-name">Function Room A</div><div class="slot-detail">All day available</div></div></div>
-        <div class="booking-slot"><span class="slot-dot slot-busy"></span><div><div class="slot-name">Karaoke Room</div><div class="slot-detail">Fully booked today</div></div></div>
-        <div class="booking-slot"><span class="slot-dot slot-avail"></span><div><div class="slot-name">BBQ Pit 1</div><div class="slot-detail">Evening slot available · 6–10pm</div></div></div>
+        <div class="section-label">Book a slot</div>
+        <div class="card">
+          <select class="inp" id="rb-facility" aria-label="Facility"></select>
+          <input class="inp" id="rb-date" type="date" aria-label="Date">
+          <input class="inp" id="rb-time" placeholder="Time slot e.g. 10:00–11:00am" aria-label="Time slot">
+          <button class="pay-btn" onclick="submitFacilityBooking()"><i class="ti ti-calendar-plus" aria-hidden="true"></i> Book facility</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="section-label">All facilities</div>
+          <div id="rb-facility-list"></div>
+        </div>
 
         <div style="margin-top:14px">
           <div class="section-label">My upcoming bookings</div>
-          <div class="card">
-            <div class="access-item">
-              <div class="access-icon" style="background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-tennisball" aria-hidden="true"></i></div>
-              <div class="access-info"><div class="access-name">Tennis Court A</div><div class="access-sub">Sat 28 Jun · 10:00–11:00am · 4 pax</div></div>
-              <button style="background:var(--mx-red-dim);color:var(--mx-red);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">Cancel</button>
-            </div>
-          </div>
+          <div class="card" id="rb-my-bookings"></div>
         </div>
       </div>
     </div>
@@ -386,20 +304,16 @@ body {
           <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
         </div>
         <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">My vehicles</div>
-        <div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">2 of 2 slots used · upgrade for more</div>
+        <div style="font-size:12px;color:var(--mx-secondary);margin-top:2px" id="rv-slots-label"></div>
       </div>
-      <div class="section">
-        <div class="vehicle-card">
-          <div class="vehicle-icon"><i class="ti ti-car" aria-hidden="true"></i></div>
-          <div style="flex:1"><div class="vehicle-plate">SKA1234B</div><div class="vehicle-detail">Toyota Camry · Car</div></div>
-          <span class="badge b-green">Approved</span>
+      <div class="section" id="rv-list"></div>
+      <div class="section" id="rv-add-form" style="display:none">
+        <div class="card">
+          <input class="inp" id="rv-plate" placeholder="Plate number e.g. SBA4411G" aria-label="Plate number">
+          <input class="inp" id="rv-model" placeholder="Make / model" aria-label="Vehicle model">
+          <select class="inp" id="rv-type" aria-label="Vehicle type"><option>Car</option><option>Motorcycle</option><option>Van / commercial</option></select>
+          <button class="pay-btn" onclick="submitVehicleAdd()"><i class="ti ti-plus" aria-hidden="true"></i> Submit for approval</button>
         </div>
-        <div class="vehicle-card">
-          <div class="vehicle-icon"><i class="ti ti-car" aria-hidden="true"></i></div>
-          <div style="flex:1"><div class="vehicle-plate">SLB4567D</div><div class="vehicle-detail">Honda Jazz · Car</div></div>
-          <span class="badge b-green">Approved</span>
-        </div>
-        <button class="add-vehicle-btn" disabled style="opacity:.4;cursor:not-allowed"><i class="ti ti-lock" aria-hidden="true"></i> Max 2 vehicles reached</button>
       </div>
     </div>
 
@@ -410,36 +324,15 @@ body {
       </div>
       <div class="section">
         <div style="text-align:center;margin-bottom:20px">
-          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--mx-teal),var(--mx-blue));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 10px">RK</div>
-          <div style="font-size:18px;font-weight:600;color:var(--mx-white)">Rajesh Kumar</div>
-          <div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">Primary owner · Unit #02-14</div>
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--mx-teal),var(--mx-blue));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 10px" id="rp-avatar"></div>
+          <div style="font-size:18px;font-weight:600;color:var(--mx-white)" id="rp-name"></div>
+          <div style="font-size:12px;color:var(--mx-secondary);margin-top:2px" id="rp-role-unit"></div>
         </div>
-        <div class="card">
-          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Email</div><div>rajesh.k@email.com</div></div>
-          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Mobile</div><div>+65 9876 5432</div></div>
-          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Unit</div><div>#02-14 · Riviera Gardens</div></div>
-          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Status</div><div><span class="badge b-teal">Owner-occupied</span></div></div>
-        </div>
+        <div class="card" id="rp-details"></div>
 
         <div class="section-label" style="margin-top:16px">Household residents</div>
-        <div class="card">
-          <div class="access-item">
-            <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-heart" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">Preethi Kumar</div><div class="access-sub">Spouse · Access card issued</div></div>
-            <span class="badge b-green">Active</span>
-          </div>
-          <div class="access-item">
-            <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-mood-kid" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">Aryan Kumar</div><div class="access-sub">Child · Age 14</div></div>
-            <span class="badge b-green">Active</span>
-          </div>
-          <div class="access-item">
-            <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-amber-dim);color:var(--mx-amber)"><i class="ti ti-mood-kid" aria-hidden="true"></i></div>
-            <div class="access-info"><div class="access-name">Aanya Kumar</div><div class="access-sub">Child · Age 10</div></div>
-            <span class="badge b-green">Active</span>
-          </div>
-        </div>
-        <button class="add-vehicle-btn" onclick="alert('Add resident form coming soon')"><i class="ti ti-plus" aria-hidden="true"></i> Add resident / sub-tenant</button>
+        <div class="card" id="rp-residents"></div>
+        <button class="add-vehicle-btn" onclick="MXUtil.toast('Add resident form coming soon','info')"><i class="ti ti-plus" aria-hidden="true"></i> Add resident / sub-tenant</button>
       </div>
     </div>
 
@@ -468,33 +361,10 @@ body {
 <!-- QR overlay -->
 <div class="qr-overlay" id="qr-overlay" onclick="this.classList.remove('open')" role="dialog" aria-label="Guest QR code">
   <div class="qr-modal" onclick="event.stopPropagation()">
-    <div class="qr-title">David Tan Wei Ming</div>
-    <div class="qr-sub">Show this QR at Gate A · Valid until 11:00pm</div>
-    <svg width="180" height="180" viewBox="0 0 130 130" style="display:block;margin:0 auto">
-      <rect width="130" height="130" fill="white" rx="8"/>
-      <rect x="8" y="8" width="44" height="44" rx="3" fill="none" stroke="#00C9A7" stroke-width="3"/>
-      <rect x="14" y="14" width="32" height="32" rx="1" fill="#00C9A7"/>
-      <rect x="78" y="8" width="44" height="44" rx="3" fill="none" stroke="#00C9A7" stroke-width="3"/>
-      <rect x="84" y="14" width="32" height="32" rx="1" fill="#00C9A7"/>
-      <rect x="8" y="78" width="44" height="44" rx="3" fill="none" stroke="#00C9A7" stroke-width="3"/>
-      <rect x="14" y="84" width="32" height="32" rx="1" fill="#00C9A7"/>
-      <rect x="60" y="60" width="10" height="10" fill="#00C9A7"/>
-      <rect x="76" y="60" width="8" height="8" fill="#00C9A7"/>
-      <rect x="90" y="62" width="12" height="8" fill="#00C9A7"/>
-      <rect x="106" y="60" width="8" height="8" fill="#00C9A7"/>
-      <rect x="60" y="76" width="8" height="8" fill="#00C9A7"/>
-      <rect x="78" y="76" width="12" height="12" fill="#00C9A7"/>
-      <rect x="98" y="76" width="8" height="8" fill="#00C9A7"/>
-      <rect x="60" y="92" width="10" height="10" fill="#00C9A7"/>
-      <rect x="76" y="92" width="8" height="8" fill="#00C9A7"/>
-      <rect x="92" y="90" width="12" height="12" fill="#00C9A7"/>
-      <rect x="110" y="92" width="8" height="8" fill="#00C9A7"/>
-      <rect x="60" y="108" width="8" height="12" fill="#00C9A7"/>
-      <rect x="76" y="108" width="10" height="12" fill="#00C9A7"/>
-      <rect x="92" y="106" width="8" height="14" fill="#00C9A7"/>
-      <rect x="106" y="108" width="14" height="12" fill="#00C9A7"/>
-    </svg>
-    <div style="font-size:12px;color:#666;margin-top:10px">Invite ID: GX-240624-4821</div>
+    <div class="qr-title" id="qr-modal-title"></div>
+    <div class="qr-sub" id="qr-modal-sub"></div>
+    <div id="qr-modal-box" style="display:flex;justify-content:center"></div>
+    <div style="font-size:12px;color:#666;margin-top:10px" id="qr-modal-id"></div>
     <button class="qr-close" onclick="document.getElementById('qr-overlay').classList.remove('open')">Close</button>
   </div>
 </div>
@@ -504,6 +374,8 @@ const VIEW_NAV_MAP = {
   home:'bn-home', guests:'bn-guests', book:'bn-book', payment:'bn-payment', profile:'bn-profile',
   vehicles: null
 };
+
+const RESIDENT_UNIT = '#02-14';
 
 let curView = 'home';
 function switchView(id) {
@@ -517,7 +389,292 @@ function switchView(id) {
 
   const newBn = VIEW_NAV_MAP[id];
   if (newBn) document.getElementById(newBn).classList.add('active');
+
+  renderView(id);
 }
+
+function unitInfo() {
+  const s = MX.get();
+  return s.units.find(u => u.unit === RESIDENT_UNIT) || s.units[0];
+}
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ════════════════════════════════════════════════════════════════
+   HOME
+   ════════════════════════════════════════════════════════════════ */
+function renderHome() {
+  const s = MX.get();
+  const u = unitInfo();
+  const firstName = u.owner.split(' ')[0];
+  document.getElementById('home-greeting').textContent = `Hello, ${firstName} 👋`;
+  document.getElementById('home-unit-tag').textContent = u.unit;
+
+  const feeRec = s.feeRecords[u.unit] || {};
+  const curMonthAbbr = MONTHS[new Date().getMonth()];
+  const curStatus = feeRec[curMonthAbbr] || 'unpaid';
+  const isPaid = curStatus === 'paid';
+  document.getElementById('home-fee-hero').innerHTML = `
+    <div class="fee-month-label">${new Date().toLocaleString('en-SG',{month:'long',year:'numeric'})}</div>
+    <div class="fee-amount">$${u.monthlyFee}</div>
+    <div class="fee-status-row">
+      <div><div class="fee-pill ${isPaid ? '' : 'overdue'}">${isPaid ? 'Paid ✓' : 'Outstanding'}</div></div>
+      <div style="font-size:12px;color:var(--mx-secondary);text-align:right">${isPaid ? 'All 2025 fees<br>up to date' : 'Payment due'}</div>
+    </div>
+    <div class="months-row">${MONTHS.slice(0,6).map(m => `<span class="mo ${feeRec[m] === 'paid' ? 'mo-paid' : 'mo-unpaid'}">${m}</span>`).join('')}</div>
+  `;
+
+  const guests = s.guests.filter(g => g.unit === u.unit && g.status !== 'Departed');
+  document.getElementById('home-guest-passes').innerHTML = guests.length ? guests.map(g => `
+    <div class="access-item">
+      <div class="access-icon" style="background:${g.plate ? 'var(--mx-amber-dim)' : 'var(--mx-teal-dim)'};color:${g.plate ? 'var(--mx-amber)' : 'var(--mx-teal)'}"><i class="ti ${g.plate ? 'ti-car' : 'ti-qrcode'}" aria-hidden="true"></i></div>
+      <div class="access-info">
+        <div class="access-name" ${g.plate ? "style=\"font-family:'Courier New';letter-spacing:.04em\"" : ''}>${g.plate || g.name}</div>
+        <div class="access-sub">${g.plate ? 'Vehicle pass' : 'Guest pass'} · until ${new Date(g.validTo).toLocaleString('en-SG',{hour:'numeric',minute:'2-digit'})}</div>
+      </div>
+      <span class="badge ${g.status === 'Active' ? 'b-green' : 'b-amber'}">${g.status}</span>
+    </div>`).join('') : emptyStateHtml('ti-qrcode','No active guest passes','Invite a guest to generate a QR pass');
+
+  const log = s.accessLog.filter(l => l.unit === u.unit).slice(0, 3);
+  const recentPayment = s.payments.find(p => p.unit === u.unit);
+  const recentBooking = s.bookings.find(b => b.unit === u.unit);
+  let activityHtml = '';
+  log.forEach(l => {
+    activityHtml += `<div class="access-item"><div class="access-icon" style="background:var(--mx-green-dim);color:var(--mx-green)"><i class="ti ti-door-enter" aria-hidden="true"></i></div><div class="access-info"><div class="access-name">${l.identity}</div><div class="access-sub">${l.gate} · ${l.time}</div></div></div>`;
+  });
+  if (recentPayment) activityHtml += `<div class="access-item"><div class="access-icon" style="background:var(--mx-green-dim);color:var(--mx-green)"><i class="ti ti-receipt" aria-hidden="true"></i></div><div class="access-info"><div class="access-name">${recentPayment.period} fee paid — $${recentPayment.amount}</div><div class="access-sub">${recentPayment.method} · ${recentPayment.date} · Ref: ${recentPayment.ref}</div></div></div>`;
+  if (recentBooking) activityHtml += `<div class="access-item"><div class="access-icon" style="background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-tennisball" aria-hidden="true"></i></div><div class="access-info"><div class="access-name">${recentBooking.facility} booked</div><div class="access-sub">${recentBooking.date} · ${recentBooking.time}</div></div></div>`;
+  document.getElementById('home-recent-activity').innerHTML = activityHtml || emptyStateHtml('ti-history','No recent activity','');
+
+  const notice = s.announcements[0];
+  document.getElementById('home-notices').innerHTML = notice ? `
+    <div class="card" style="display:flex;gap:10px;align-items:flex-start">
+      <div style="width:36px;height:36px;background:var(--mx-amber-dim);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;color:var(--mx-amber)"><i class="ti ti-speakerphone" aria-hidden="true"></i></div>
+      <div><div style="font-weight:500;font-size:13px;color:var(--mx-white)">${notice.title}</div><div style="font-size:12px;color:var(--mx-secondary);margin-top:2px">${notice.body}</div></div>
+    </div>` : emptyStateHtml('ti-speakerphone','No notices', '');
+}
+
+function emptyStateHtml(icon, title, sub) {
+  return `<div style="text-align:center;padding:20px;color:var(--mx-muted)"><i class="ti ${icon}" style="font-size:24px;display:block;margin-bottom:8px" aria-hidden="true"></i><div style="font-size:13px;color:var(--mx-secondary)">${title}</div><div style="font-size:11px;margin-top:2px">${sub || ''}</div></div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GUESTS
+   ════════════════════════════════════════════════════════════════ */
+function renderGuestsView() {
+  const s = MX.get();
+  const guests = s.guests.filter(g => g.unit === RESIDENT_UNIT && g.status !== 'Departed');
+  document.getElementById('guests-active-list').innerHTML = guests.length ? guests.map(g => `
+    <div class="access-item">
+      <div class="access-icon ${g.plate ? '' : 'qa-teal'}" style="width:40px;height:40px;${g.plate ? 'background:var(--mx-amber-dim);color:var(--mx-amber)' : ''}"><i class="ti ${g.plate ? 'ti-car' : 'ti-qrcode'}" aria-hidden="true"></i></div>
+      <div class="access-info"><div class="access-name" ${g.plate ? "style=\"font-family:monospace\"" : ''}>${g.plate || g.name}</div><div class="access-sub">${g.plate ? 'Vehicle pass' : 'Guest pass'} · ${new Date(g.validFrom).toLocaleString('en-SG',{hour:'numeric',minute:'2-digit'})}–${new Date(g.validTo).toLocaleString('en-SG',{hour:'numeric',minute:'2-digit'})}</div></div>
+      ${g.plate ? `<span class="badge b-amber">ANPR</span>` : `<button onclick="showGuestQR('${g.id}')" style="background:var(--mx-teal-dim);color:var(--mx-teal);border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">View QR</button>`}
+    </div>`).join('') : emptyStateHtml('ti-qrcode','No active or upcoming guest passes','');
+}
+
+function showGuestQR(id) {
+  const s = MX.get();
+  const g = s.guests.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('qr-modal-title').textContent = g.name;
+  document.getElementById('qr-modal-sub').textContent = `Show this QR at the gate · Valid until ${new Date(g.validTo).toLocaleString('en-SG',{hour:'numeric',minute:'2-digit'})}`;
+  document.getElementById('qr-modal-box').innerHTML = MXUtil.renderQR(g.qrId, 180);
+  document.getElementById('qr-modal-id').textContent = `Invite ID: ${g.qrId}`;
+  document.getElementById('qr-overlay').classList.add('open');
+}
+
+function sendGuestInvite() {
+  const nameEl = document.getElementById('rg-name');
+  const phoneEl = document.getElementById('rg-phone');
+  const plateEl = document.getElementById('rg-plate');
+  const fromEl = document.getElementById('rg-from');
+  const toEl = document.getElementById('rg-to');
+  MXUtil.clearFieldError(nameEl); MXUtil.clearFieldError(phoneEl); MXUtil.clearFieldError(plateEl);
+
+  if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Guest name required'); return; }
+  if (phoneEl.value && !MXUtil.validSGMobile(phoneEl.value)) { MXUtil.showFieldError(phoneEl, 'Use format +65 XXXX XXXX'); return; }
+  if (plateEl.value && !MXUtil.validPlate(plateEl.value)) { MXUtil.showFieldError(plateEl, 'Invalid plate format'); return; }
+  if (!fromEl.value || !toEl.value) { MXUtil.toast('Set valid from/until times', 'error'); return; }
+  if (new Date(toEl.value) <= new Date(fromEl.value)) { MXUtil.toast('Until time must be after from time', 'error'); return; }
+
+  const qrId = 'GX-' + Date.now().toString(36).toUpperCase();
+  MX.set(s => {
+    s.guests.push({
+      id: MX.uid('g'), name: nameEl.value, unit: RESIDENT_UNIT, phone: phoneEl.value, plate: plateEl.value.toUpperCase(),
+      validFrom: fromEl.value, validTo: toEl.value, status: plateEl.value ? 'Pending ANPR' : 'Active', qrId,
+    });
+  });
+  nameEl.value = ''; phoneEl.value = ''; plateEl.value = ''; fromEl.value = ''; toEl.value = '';
+  MXUtil.toast('Guest pass created and QR sent via SMS', 'success');
+  renderGuestsView();
+  showGuestQR(MX.get().guests[MX.get().guests.length - 1].id);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PAYMENT
+   ════════════════════════════════════════════════════════════════ */
+function renderPaymentView() {
+  const s = MX.get();
+  const u = unitInfo();
+  const nextMonthAbbr = MONTHS[(new Date().getMonth() + 1) % 12];
+  document.getElementById('pay-unit-period').textContent = `Unit ${u.unit} · ${new Date().toLocaleString('en-SG',{month:'long'})} ${new Date().getFullYear()}`;
+  document.getElementById('pay-amount').textContent = `$${u.monthlyFee}`;
+  const ref = `RG-${u.unit.replace('#','')}-${nextMonthAbbr.toUpperCase()}${String(new Date().getFullYear()).slice(2)}`;
+  const payload = MXUtil.buildPayNowPayload('202411234A', u.monthlyFee, ref);
+  document.getElementById('pay-qr-box').innerHTML = MXUtil.renderQR(payload, 150);
+  document.getElementById('pay-ref').textContent = `Ref: ${ref}`;
+
+  const history = s.payments.filter(p => p.unit === u.unit);
+  document.getElementById('pay-history-list').innerHTML = history.length ? history.map(p => `
+    <div class="access-item"><div style="font-size:13px;flex:1;color:var(--mx-text)">${p.period} <span style="color:var(--mx-muted);font-size:11px;margin-left:4px">${p.date}</span></div><strong>$${p.amount}</strong><span class="badge b-teal" style="margin-left:8px">Paid</span></div>`).join('')
+    : emptyStateHtml('ti-history','No payment history','');
+}
+
+function markFeePaid() {
+  const u = unitInfo();
+  const nextMonthAbbr = MONTHS[(new Date().getMonth() + 1) % 12];
+  const ref = `RG-${u.unit.replace('#','')}-${nextMonthAbbr.toUpperCase()}${String(new Date().getFullYear()).slice(2)}`;
+  MX.set(s => {
+    s.payments.unshift({ unit: u.unit, date: new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short'}), period: `${new Date().toLocaleString('en-SG',{month:'long'})} ${new Date().getFullYear()}`, amount: u.monthlyFee, method: 'PayNow', ref });
+    const unitRec = s.units.find(x => x.unit === u.unit);
+    if (unitRec) unitRec.feeStatus = 'Paid';
+    if (!s.feeRecords[u.unit]) s.feeRecords[u.unit] = {};
+    s.feeRecords[u.unit][MONTHS[new Date().getMonth()]] = 'paid';
+  });
+  MXUtil.toast('Payment recorded — receipt sent by email', 'success');
+  renderPaymentView();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOOK FACILITY
+   ════════════════════════════════════════════════════════════════ */
+function renderBookView() {
+  const s = MX.get();
+  const sel = document.getElementById('rb-facility');
+  sel.innerHTML = s.facilities.filter(f => f.status === 'Active').map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+  document.getElementById('rb-date').valueAsDate = document.getElementById('rb-date').valueAsDate || new Date();
+
+  document.getElementById('rb-facility-list').innerHTML = s.facilities.map(f => {
+    const todays = s.bookings.filter(b => b.facility === f.name && b.date === new Date().toISOString().slice(0, 10));
+    const dotClass = f.status !== 'Active' ? 'slot-busy' : (todays.length === 0 ? 'slot-avail' : 'slot-partial');
+    return `<div class="booking-slot"><span class="slot-dot ${dotClass}"></span><div><div class="slot-name">${f.name}</div><div class="slot-detail">${f.status !== 'Active' ? f.status : (todays.length ? todays.length + ' booking(s) today' : 'Available today')}</div></div></div>`;
+  }).join('');
+
+  const mine = s.bookings.filter(b => b.unit === RESIDENT_UNIT);
+  document.getElementById('rb-my-bookings').innerHTML = mine.length ? mine.map(b => `
+    <div class="access-item">
+      <div class="access-icon" style="background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-calendar-event" aria-hidden="true"></i></div>
+      <div class="access-info"><div class="access-name">${b.facility}</div><div class="access-sub">${b.date} · ${b.time}</div></div>
+      <button onclick="cancelBooking('${b.id}')" style="background:var(--mx-red-dim);color:var(--mx-red);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">Cancel</button>
+    </div>`).join('') : emptyStateHtml('ti-calendar','No upcoming bookings','');
+}
+
+function submitFacilityBooking() {
+  const facility = document.getElementById('rb-facility').value;
+  const date = document.getElementById('rb-date').value;
+  const time = document.getElementById('rb-time').value;
+  if (!facility || !date || !MXUtil.validRequired(time)) { MXUtil.toast('Fill in facility, date and time slot', 'error'); return; }
+
+  const s = MX.get();
+  const conflict = s.bookings.some(b => b.facility === facility && b.date === date && b.time === time);
+  if (conflict) { MXUtil.toast('That slot is already booked — pick another time', 'error'); return; }
+
+  const clsMap = { Sports: 'bc-teal', Leisure: 'bc-blue', Entertainment: 'bc-purple', Event: 'bc-purple', Outdoor: 'bc-blue', Fitness: 'bc-teal' };
+  const fac = s.facilities.find(f => f.name === facility);
+  MX.set(st => {
+    st.bookings.push({ id: MX.uid('b'), date, facility, unit: RESIDENT_UNIT, time, cls: clsMap[fac && fac.category] || 'bc-teal' });
+  });
+  document.getElementById('rb-time').value = '';
+  MXUtil.toast('Facility booked', 'success');
+  renderBookView();
+}
+
+function cancelBooking(id) {
+  MX.set(s => { s.bookings = s.bookings.filter(b => b.id !== id); });
+  MXUtil.toast('Booking cancelled', 'info');
+  renderBookView();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   VEHICLES
+   ════════════════════════════════════════════════════════════════ */
+const MAX_VEHICLES_PER_UNIT = 2;
+
+function renderVehiclesView() {
+  const s = MX.get();
+  const mine = s.vehicles.filter(v => v.unit === RESIDENT_UNIT);
+  document.getElementById('rv-slots-label').textContent = `${mine.length} of ${MAX_VEHICLES_PER_UNIT} slots used`;
+  document.getElementById('rv-list').innerHTML = mine.length ? mine.map(v => `
+    <div class="vehicle-card">
+      <div class="vehicle-icon"><i class="ti ti-car" aria-hidden="true"></i></div>
+      <div style="flex:1"><div class="vehicle-plate">${v.plate}</div><div class="vehicle-detail">${v.type}</div></div>
+      <span class="badge ${v.status === 'Approved' ? 'b-green' : 'b-amber'}">${v.status}</span>
+    </div>`).join('') : emptyStateHtml('ti-car','No vehicles registered','');
+
+  const formEl = document.getElementById('rv-add-form');
+  if (mine.length >= MAX_VEHICLES_PER_UNIT) {
+    formEl.style.display = 'none';
+    document.getElementById('rv-list').innerHTML += `<button class="add-vehicle-btn" disabled style="opacity:.4;cursor:not-allowed"><i class="ti ti-lock" aria-hidden="true"></i> Max ${MAX_VEHICLES_PER_UNIT} vehicles reached</button>`;
+  } else {
+    formEl.style.display = 'block';
+  }
+}
+
+function submitVehicleAdd() {
+  const plateEl = document.getElementById('rv-plate');
+  const modelEl = document.getElementById('rv-model');
+  MXUtil.clearFieldError(plateEl); MXUtil.clearFieldError(modelEl);
+  if (!MXUtil.validPlate(plateEl.value)) { MXUtil.showFieldError(plateEl, 'Format: e.g. SBA1234A'); return; }
+  if (!MXUtil.validRequired(modelEl.value)) { MXUtil.showFieldError(modelEl, 'Model required'); return; }
+
+  const s = MX.get();
+  if (s.vehicles.some(v => v.plate.toUpperCase() === plateEl.value.toUpperCase())) { MXUtil.toast('This plate is already registered', 'error'); return; }
+
+  const u = unitInfo();
+  MX.set(st => {
+    st.vehicles.push({ plate: plateEl.value.toUpperCase(), unit: RESIDENT_UNIT, owner: u.owner, type: document.getElementById('rv-type').value, logCard: 'Pending review', status: 'Under review' });
+  });
+  plateEl.value = ''; modelEl.value = '';
+  MXUtil.toast('Vehicle submitted for approval', 'success');
+  renderVehiclesView();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PROFILE
+   ════════════════════════════════════════════════════════════════ */
+function renderProfileView() {
+  const u = unitInfo();
+  const initials = u.owner.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('rp-avatar').textContent = initials;
+  document.getElementById('rp-name').textContent = u.owner;
+  document.getElementById('rp-role-unit').textContent = `Primary owner · Unit ${u.unit}`;
+  document.getElementById('rp-details').innerHTML = `
+    <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Email</div><div>${u.email}</div></div>
+    <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Mobile</div><div>${u.phone}</div></div>
+    <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Unit</div><div>${u.unit} · Riviera Gardens</div></div>
+    <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Status</div><div><span class="badge b-teal">${u.occType}</span></div></div>
+  `;
+  document.getElementById('rp-residents').innerHTML = `
+    <div class="access-item">
+      <div class="access-icon" style="width:36px;height:36px;font-size:14px;background:var(--mx-blue-dim);color:var(--mx-blue)"><i class="ti ti-users" aria-hidden="true"></i></div>
+      <div class="access-info"><div class="access-name">${u.residents} residents</div><div class="access-sub">${u.residentsNote}</div></div>
+      <span class="badge b-green">Active</span>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   View dispatcher
+   ════════════════════════════════════════════════════════════════ */
+function renderView(id) {
+  if (id === 'home') renderHome();
+  if (id === 'guests') renderGuestsView();
+  if (id === 'payment') renderPaymentView();
+  if (id === 'book') renderBookView();
+  if (id === 'vehicles') renderVehiclesView();
+  if (id === 'profile') renderProfileView();
+}
+
+renderView('home');
 </script>
 </body>
 </html>
