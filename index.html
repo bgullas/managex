@@ -680,6 +680,11 @@ select.inp { cursor: pointer; }
         <div class="stat-row"><span><i class="ti ti-barbell" style="font-size:13px;margin-right:5px;color:var(--mx-amber)" aria-hidden="true"></i>Gymnasium</span><div class="occ-bar"><div class="progress-bg" style="width:100px;margin-top:0"><div class="progress-fill warn" style="width:74%"></div></div><span style="font-size:11px;color:var(--mx-secondary);min-width:28px">74%</span></div></div>
       </div>
     </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title"><i class="ti ti-briefcase" aria-hidden="true"></i> Upcoming contract renewals</div>
+      <div id="dash-contract-renewals"></div>
+    </div>
   </div>
 
   <!-- ════ OWNERS & TENANTS ════ -->
@@ -1169,8 +1174,59 @@ select.inp { cursor: pointer; }
     </div>
     <div class="card">
       <div class="tbl-wrap"><table>
-        <thead><tr><th>Vendor</th><th>Category</th><th>Contact</th><th>Contract expiry</th><th></th></tr></thead>
+        <thead><tr><th>Vendor</th><th>Category</th><th>Contact</th><th>Contract value</th><th>Renewal terms</th><th>Contract expiry</th><th>Document</th><th></th></tr></thead>
         <tbody id="vendors-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ════ GOVERNANCE OVERVIEW ════ -->
+  <div class="page" id="page-governance">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Governance & compliance overview</div>
+    </div>
+    <div class="grid4" id="gov-kpis" style="margin-bottom:16px"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-gavel" aria-hidden="true"></i> AGM compliance</div>
+      <div id="gov-agm-detail"></div>
+    </div>
+  </div>
+
+  <!-- ════ MEETING MINUTES REGISTER ════ -->
+  <div class="page" id="page-minutes">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Meeting minutes register</div>
+      <button class="btn btn-sm btn-primary" onclick="openMinutesModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add minutes</button>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Meeting type</th><th>Meeting date</th><th>Doc reference</th><th>Displayed from</th><th>Displayed until</th><th>Status</th></tr></thead>
+        <tbody id="minutes-tbody"></tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--mx-muted);margin-top:10px">BMSMA Sch. 2 — min. 14 days display</div>
+    </div>
+  </div>
+
+  <!-- ════ QUOTATION / TENDER TRACKER ════ -->
+  <div class="page" id="page-quotations">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Quotation / tender tracker</div>
+      <button class="btn btn-sm btn-primary" onclick="openWorkItemModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add work item</button>
+    </div>
+    <div id="quotations-list"></div>
+  </div>
+
+  <!-- ════ COUNCIL MEMBERS REGISTRY ════ -->
+  <div class="page" id="page-council">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Council members registry</div>
+      <button class="btn btn-sm btn-primary" onclick="openCouncilModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add member</button>
+    </div>
+    <div id="council-warning" style="margin-bottom:12px"></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Name</th><th>Role</th><th>Unit</th><th>Term start</th><th>Term end</th><th></th></tr></thead>
+        <tbody id="council-tbody"></tbody>
       </table></div>
     </div>
   </div>
@@ -1203,6 +1259,12 @@ const NAV = [
     {id:"parcels", icon:"ti-package", label:"Parcels", badgeKey:"parcelsPending"},
     {id:"vendors", icon:"ti-briefcase", label:"Vendors"},
   ]},
+  {group:"Governance", items:[
+    {id:"governance", icon:"ti-gavel", label:"Governance Overview"},
+    {id:"minutes", icon:"ti-notebook", label:"Meeting Minutes"},
+    {id:"quotations", icon:"ti-file-invoice", label:"Quotations / Tenders"},
+    {id:"council", icon:"ti-users-group", label:"Council Members"},
+  ]},
   {group:"Finance", items:[
     {id:"fees", icon:"ti-receipt", label:"Management Fees"},
     {id:"payments", icon:"ti-cash", label:"Payments"},
@@ -1217,7 +1279,9 @@ const TITLES = {
   payments:"Payments", reports:"Reports", settings:"Settings",
   maintenance:"Maintenance", announcements:"Announcements",
   documents:"Documents", polls:"Polls / AGM e-Voting",
-  parcels:"Parcels & Deliveries", vendors:"Vendor Registry"
+  parcels:"Parcels & Deliveries", vendors:"Vendor Registry",
+  governance:"Governance Overview", minutes:"Meeting Minutes Register",
+  quotations:"Quotation / Tender Tracker", council:"Council Members Registry"
 };
 
 function navBadgeCount(key) {
@@ -1322,6 +1386,17 @@ function renderDashboard() {
           <button class="btn btn-sm btn-danger" onclick="rejectDashItem('${a.id}')">Reject</button>
         </div>
       </div>`).join('') : emptyState('ti-checks', 'No pending approvals', 'All caught up.');
+  }
+  const renewBox = document.getElementById('dash-contract-renewals');
+  if (renewBox) {
+    const upcoming = s.vendors.filter(v => daysUntil(v.contractExpiry) <= 60).sort((a,b) => daysUntil(a.contractExpiry) - daysUntil(b.contractExpiry));
+    renewBox.innerHTML = upcoming.length ? upcoming.map(v => {
+      const d = daysUntil(v.contractExpiry);
+      return `<div class="stat-row">
+        <div><div style="font-weight:500">${v.name}</div><div style="font-size:11px;color:var(--mx-muted)">${v.category} · expires ${v.contractExpiry} · ${d < 0 ? 'overdue' : d + ' days left'}</div></div>
+        <button class="btn btn-sm" onclick="goto('vendors')">View</button>
+      </div>`;
+    }).join('') : emptyState('ti-briefcase', 'No upcoming renewals', 'No contracts expiring within 60 days.');
   }
 }
 
@@ -1954,24 +2029,43 @@ function submitDocument() {
 /* ════════════════════════════════════════════════════════════════
    Polls / AGM e-voting
    ════════════════════════════════════════════════════════════════ */
+function pollResolutionResult(p) {
+  if (p.resolutionType !== 'Ordinary resolution' && p.resolutionType !== 'Special resolution') return '';
+  const total = p.options.reduce((a,o) => a + o.votes, 0);
+  if (!total) return '';
+  const approveOpt = p.options.find(o => /approve|yes/i.test(o.label));
+  if (!approveOpt) return '';
+  const ratio = approveOpt.votes / total;
+  const needed = p.resolutionType === 'Special resolution' ? 0.75 : 0.5;
+  const met = p.resolutionType === 'Special resolution' ? ratio >= needed : ratio > needed;
+  return `<div style="font-size:12px;margin-top:8px">${p.resolutionType} threshold (${p.resolutionType === 'Special resolution' ? '≥75%' : '>50%'}): ${met ? '<span class="badge b-green">Threshold met</span>' : '<span class="badge b-red">Threshold not met</span>'} — ${(ratio*100).toFixed(1)}% approve</div>`;
+}
 function renderPolls() {
   const box = document.getElementById('polls-list');
   if (!box) return;
   const s = MX.get();
   const user = MX.currentUser();
   box.innerHTML = s.polls.length ? s.polls.map(p => {
-    const total = p.options.reduce((a,o) => a + o.votes, 0) || 1;
+    const rawTotal = p.options.reduce((a,o) => a + o.votes, 0);
+    const total = rawTotal || 1;
     const hasVoted = !!p.voters[user];
+    const proxyCount = (p.proxyVotes || []).length;
+    const directCount = rawTotal - proxyCount;
     return `<div class="card" style="margin-bottom:12px">
-      <div class="card-title"><i class="ti ti-chart-pie-2"></i> ${p.title} <span class="badge ${p.status==='Open'?'b-green':'b-gray'}" style="margin-left:6px">${p.status}</span></div>
+      <div class="card-title"><i class="ti ti-chart-pie-2"></i> ${p.title} <span class="badge ${p.status==='Open'?'b-green':'b-gray'}" style="margin-left:6px">${p.status}</span>
+        ${p.category ? `<span class="badge b-blue" style="margin-left:4px">${p.category}</span>` : ''}
+        ${p.resolutionType ? `<span class="badge b-purple" style="margin-left:4px">${p.resolutionType}</span>` : ''}
+      </div>
       ${p.options.map((o,i) => `
         <div class="poll-bar-row">
           <div class="poll-bar-label"><span>${o.label}</span><span>${o.votes} (${Math.round(o.votes/total*100)}%)</span></div>
           <div class="poll-bar-bg"><div class="poll-bar-fill" style="width:${(o.votes/total*100).toFixed(1)}%"></div></div>
         </div>`).join('')}
+      <div style="font-size:11px;color:var(--mx-muted);margin-top:4px">${rawTotal} votes (${directCount} direct + ${proxyCount} proxy)</div>
       ${p.status === 'Open' ? (hasVoted ? '<div style="font-size:12px;color:var(--mx-muted);margin-top:8px">You have voted on this poll.</div>' :
         `<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">${p.options.map((o,i)=>`<button class="btn btn-sm btn-primary" onclick="castVote('${p.id}',${i})">${o.label}</button>`).join('')}</div>`)
         : '<div style="font-size:12px;color:var(--mx-muted);margin-top:8px">Voting closed.</div>'}
+      ${p.status === 'Open' ? `<button class="btn btn-sm" style="margin-top:8px" onclick="openProxyVoteModal('${p.id}')"><i class="ti ti-user-check"></i> Record proxy vote</button>` : pollResolutionResult(p)}
     </div>`;
   }).join('') : emptyState('ti-chart-pie-2', 'No polls created', '');
 }
@@ -1988,12 +2082,47 @@ function castVote(pollId, optIndex) {
   MXUtil.toast('Vote recorded', 'success');
   renderPolls();
 }
+function openProxyVoteModal(pollId) {
+  const s = MX.get();
+  const poll = s.polls.find(p => p.id === pollId);
+  if (!poll) return;
+  openModal('Record proxy vote', `
+    <div class="form-row"><label class="form-label">Unit</label>
+      <select class="inp" id="proxy-unit">${s.units.map(u=>`<option>${u.unit}</option>`).join('')}</select>
+    </div>
+    <div class="form-row"><label class="form-label">Vote</label>
+      <select class="inp" id="proxy-option">${poll.options.map((o,i)=>`<option value="${i}">${o.label}</option>`).join('')}</select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitProxyVote('${pollId}')"><i class="ti ti-user-check"></i> Record proxy vote</button>
+  `);
+}
+function submitProxyVote(pollId) {
+  const unit = document.getElementById('proxy-unit').value;
+  const optIndex = Number(document.getElementById('proxy-option').value);
+  MX.set(s => {
+    const p = s.polls.find(p => p.id === pollId);
+    if (!p) return;
+    p.options[optIndex].votes++;
+    p.proxyVotes = p.proxyVotes || [];
+    p.proxyVotes.push({ unit, optIndex, recordedOn: '2025-06-24' });
+  });
+  closeModal();
+  MXUtil.toast('Proxy vote recorded for ' + unit, 'success');
+  renderPolls();
+}
 function openPollModal() {
   openModal('Create poll', `
     <div class="form-row"><label class="form-label">Question / title</label><input class="inp" id="poll-title" placeholder="e.g. Approve AGM budget"></div>
     <div class="form-row"><label class="form-label">Options (comma separated)</label><input class="inp" id="poll-options" placeholder="Approve, Reject, Abstain"></div>
+    <div class="form-row"><label class="form-label">Category</label><select class="inp" id="poll-category" onchange="togglePollResolutionField()"><option>AGM Resolution</option><option>Council Decision</option><option>Community Activity</option></select></div>
+    <div class="form-row" id="poll-resolution-row"><label class="form-label">Resolution type</label><select class="inp" id="poll-resolution"><option>Ordinary resolution</option><option>Special resolution</option></select></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitPoll()"><i class="ti ti-plus"></i> Create poll</button>
   `);
+  togglePollResolutionField();
+}
+function togglePollResolutionField() {
+  const cat = document.getElementById('poll-category').value;
+  document.getElementById('poll-resolution-row').style.display = cat === 'AGM Resolution' ? 'block' : 'none';
 }
 function submitPoll() {
   const titleEl = document.getElementById('poll-title');
@@ -2004,8 +2133,13 @@ function submitPoll() {
   const opts = optsEl.value.split(',').map(s => s.trim()).filter(Boolean);
   if (opts.length < 2) { MXUtil.showFieldError(optsEl, 'Provide at least 2 options'); ok = false; }
   if (!ok) return;
+  const category = document.getElementById('poll-category').value;
   MX.set(s => {
-    s.polls.unshift({ id: MX.uid('p'), title: titleEl.value, status: 'Open', options: opts.map(label => ({label, votes:0})), voters: {} });
+    s.polls.unshift({
+      id: MX.uid('p'), title: titleEl.value, status: 'Open', category,
+      resolutionType: category === 'AGM Resolution' ? document.getElementById('poll-resolution').value : null,
+      options: opts.map(label => ({label, votes:0})), voters: {}, proxyVotes: [],
+    });
   });
   closeModal();
   MXUtil.toast('Poll created', 'success');
@@ -2063,13 +2197,16 @@ function renderVendors() {
   const tbody = document.getElementById('vendors-tbody');
   if (!tbody) return;
   const s = MX.get();
-  if (!s.vendors.length) { tbody.innerHTML = `<tr><td colspan="5">${emptyState('ti-briefcase','No vendors registered','')}</td></tr>`; return; }
+  if (!s.vendors.length) { tbody.innerHTML = `<tr><td colspan="8">${emptyState('ti-briefcase','No vendors registered','')}</td></tr>`; return; }
   tbody.innerHTML = s.vendors.map(v => {
     const d = daysUntil(v.contractExpiry);
     const soon = d >= 0 && d <= 60;
     return `<tr class="${soon?'renewal-soon':''}"><td>${v.name}</td><td><span class="badge b-blue">${v.category}</span></td><td>${v.contact}</td>
+      <td>${v.contractValue != null ? '$' + v.contractValue.toLocaleString() : '—'}</td>
+      <td>${v.renewalTerms || '—'}</td>
       <td>${v.contractExpiry} ${soon ? '<span class="badge b-amber" style="margin-left:6px">Renewal due soon</span>' : ''}</td>
-      <td><button class="btn btn-sm" onclick="MXUtil.toast('Opening vendor profile for ${v.name}','info')">Details</button></td></tr>`;
+      <td>${v.contractDocName || '—'}</td>
+      <td style="display:flex;gap:6px"><button class="btn btn-sm" onclick="MXUtil.toast('Opening vendor profile for ${v.name}','info')">Details</button><button class="btn btn-sm btn-primary" onclick="openRenewVendorModal('${v.id}')">Renew</button></td></tr>`;
   }).join('');
 }
 function openVendorModal() {
@@ -2077,7 +2214,11 @@ function openVendorModal() {
     <div class="form-row"><label class="form-label">Name</label><input class="inp" id="ven-name" placeholder="e.g. CleanCo Pte Ltd"></div>
     <div class="form-row"><label class="form-label">Category</label><select class="inp" id="ven-category"><option>Cleaning</option><option>Security</option><option>Lift maintenance</option><option>Landscaping</option><option>Electrical</option><option>Plumbing</option><option>Other</option></select></div>
     <div class="form-row"><label class="form-label">Contact</label><input class="inp" id="ven-contact" placeholder="+65 XXXX XXXX"></div>
+    <div class="form-row"><label class="form-label">Contract value (SGD/yr)</label><input class="inp" id="ven-value" type="number" placeholder="e.g. 24000"></div>
+    <div class="form-row"><label class="form-label">Contract start date</label><input class="inp" id="ven-start" type="date"></div>
     <div class="form-row"><label class="form-label">Contract expiry</label><input class="inp" id="ven-expiry" type="date"></div>
+    <div class="form-row"><label class="form-label">Renewal terms</label><select class="inp" id="ven-renewal"><option>Auto-renew annually</option><option>Fixed term — manual renewal</option><option>Month-to-month</option></select></div>
+    <div class="form-row"><label class="form-label">Contract document</label><input class="inp" id="ven-doc" type="file"></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitVendor()"><i class="ti ti-plus"></i> Add vendor</button>
   `);
 }
@@ -2085,12 +2226,255 @@ function submitVendor() {
   const nameEl = document.getElementById('ven-name');
   MXUtil.clearFieldError(nameEl);
   if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Name required'); return; }
+  const docFile = document.getElementById('ven-doc').files[0];
+  const valueRaw = document.getElementById('ven-value').value;
   MX.set(s => {
-    s.vendors.push({ id: MX.uid('v'), name: nameEl.value, category: document.getElementById('ven-category').value, contact: document.getElementById('ven-contact').value, contractExpiry: document.getElementById('ven-expiry').value || '2026-01-01' });
+    s.vendors.push({
+      id: MX.uid('v'), name: nameEl.value, category: document.getElementById('ven-category').value, contact: document.getElementById('ven-contact').value,
+      contractValue: valueRaw ? Number(valueRaw) : null,
+      contractStartDate: document.getElementById('ven-start').value || null,
+      contractExpiry: document.getElementById('ven-expiry').value || '2026-01-01',
+      renewalTerms: document.getElementById('ven-renewal').value,
+      contractDocName: docFile ? docFile.name : null,
+      contractHistory: [],
+    });
   });
   closeModal();
   MXUtil.toast('Vendor added', 'success');
   renderVendors();
+}
+function openRenewVendorModal(id) {
+  const v = MX.get().vendors.find(v => v.id === id);
+  if (!v) return;
+  openModal('Renew contract — ' + v.name, `
+    <div class="form-row"><label class="form-label">Current expiry</label><input class="inp" value="${v.contractExpiry}" disabled></div>
+    <div class="form-row"><label class="form-label">New contract expiry</label><input class="inp" id="renew-expiry" type="date"></div>
+    <div class="form-row"><label class="form-label">New contract value (SGD/yr)</label><input class="inp" id="renew-value" type="number" placeholder="${v.contractValue != null ? v.contractValue : ''}"></div>
+    <div class="form-row"><label class="form-label">New contract document</label><input class="inp" id="renew-doc" type="file"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitRenewVendor('${v.id}')"><i class="ti ti-refresh"></i> Renew contract</button>
+  `);
+}
+function submitRenewVendor(id) {
+  const expiryEl = document.getElementById('renew-expiry');
+  MXUtil.clearFieldError(expiryEl);
+  if (!MXUtil.validRequired(expiryEl.value)) { MXUtil.showFieldError(expiryEl, 'New expiry date required'); return; }
+  const valueRaw = document.getElementById('renew-value').value;
+  const docFile = document.getElementById('renew-doc').files[0];
+  MX.set(s => {
+    const v = s.vendors.find(v => v.id === id);
+    if (!v) return;
+    v.contractHistory = v.contractHistory || [];
+    v.contractHistory.push({ contractExpiry: v.contractExpiry, contractValue: v.contractValue, contractStartDate: v.contractStartDate, renewalTerms: v.renewalTerms, contractDocName: v.contractDocName, renewedOn: new Date().toISOString().slice(0,10) });
+    v.contractStartDate = new Date().toISOString().slice(0,10);
+    v.contractExpiry = expiryEl.value;
+    if (valueRaw) v.contractValue = Number(valueRaw);
+    if (docFile) v.contractDocName = docFile.name;
+  });
+  closeModal();
+  MXUtil.toast('Contract renewed', 'success');
+  renderVendors();
+  renderDashboard();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Council governance — meeting minutes, quotations/tenders, council members, AGM compliance
+   ════════════════════════════════════════════════════════════════ */
+function minutesStatus(m) {
+  const today = new Date('2025-06-24');
+  const from = new Date(m.displayedFrom);
+  if (today < from) return 'Not yet posted';
+  const until = new Date(from.getTime() + 14 * 86400000);
+  return today <= until ? 'Displaying' : 'Display period complete';
+}
+function minutesDisplayedUntil(m) {
+  const from = new Date(m.displayedFrom);
+  return new Date(from.getTime() + 14 * 86400000).toISOString().slice(0,10);
+}
+function renderMinutes() {
+  const tbody = document.getElementById('minutes-tbody');
+  if (!tbody) return;
+  const s = MX.get();
+  if (!s.minutesRegister.length) { tbody.innerHTML = `<tr><td colspan="6">${emptyState('ti-notebook','No minutes recorded','')}</td></tr>`; return; }
+  const badgeMap = { 'Displaying': 'b-green', 'Display period complete': 'b-gray', 'Not yet posted': 'b-amber' };
+  tbody.innerHTML = s.minutesRegister.map(m => {
+    const status = minutesStatus(m);
+    return `<tr><td>${m.meetingType}</td><td>${m.meetingDate}</td><td>${m.docRef}</td><td>${m.displayedFrom}</td><td>${minutesDisplayedUntil(m)}</td>
+      <td><span class="badge ${badgeMap[status]}">${status}</span></td></tr>`;
+  }).join('');
+}
+function openMinutesModal() {
+  openModal('Add meeting minutes', `
+    <div class="form-row"><label class="form-label">Meeting type</label><select class="inp" id="mr-type"><option>AGM</option><option>Extraordinary General Meeting</option><option>Council Meeting</option></select></div>
+    <div class="form-row"><label class="form-label">Meeting date</label><input class="inp" id="mr-date" type="date"></div>
+    <div class="form-row"><label class="form-label">Minutes document reference</label><input class="inp" id="mr-docref" placeholder="e.g. AGM Minutes — 2025"></div>
+    <div class="form-row"><label class="form-label">Displayed from</label><input class="inp" id="mr-from" type="date"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitMinutes()"><i class="ti ti-plus"></i> Add minutes</button>
+  `);
+}
+function submitMinutes() {
+  const docRefEl = document.getElementById('mr-docref');
+  MXUtil.clearFieldError(docRefEl);
+  if (!MXUtil.validRequired(docRefEl.value)) { MXUtil.showFieldError(docRefEl, 'Document reference required'); return; }
+  MX.set(s => {
+    s.minutesRegister.unshift({
+      id: MX.uid('mr'), meetingType: document.getElementById('mr-type').value, meetingDate: document.getElementById('mr-date').value || '2025-06-24',
+      docRef: docRefEl.value, displayedFrom: document.getElementById('mr-from').value || '2025-06-24',
+    });
+  });
+  closeModal();
+  MXUtil.toast('Minutes added', 'success');
+  renderMinutes();
+}
+
+function renderQuotations() {
+  const box = document.getElementById('quotations-list');
+  if (!box) return;
+  const s = MX.get();
+  const threshold = s.quoteThreshold;
+  box.innerHTML = s.workItems.length ? s.workItems.map(wi => {
+    const needsMore = wi.quotations.length < 3 && wi.estimatedValue > threshold;
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-title"><i class="ti ti-file-invoice"></i> ${wi.description} <span class="badge b-blue" style="margin-left:6px">${wi.category}</span>
+        ${needsMore ? '<span class="badge b-amber" style="margin-left:6px">Consider obtaining more quotes for transparency</span>' : ''}
+      </div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Estimated value</span><strong style="color:var(--mx-white)">$${wi.estimatedValue.toLocaleString()}</strong></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Vendor</th><th>Amount</th><th>Submitted</th><th>Status</th></tr></thead>
+        <tbody>${wi.quotations.map(q => `<tr><td>${q.vendorName}</td><td>$${q.amount.toLocaleString()}</td><td>${q.submittedDate}</td><td><span class="badge ${q.status==='Awarded'?'b-green':q.status==='Rejected'?'b-red':q.status==='Under review'?'b-amber':'b-gray'}">${q.status}</span></td></tr>`).join('') || `<tr><td colspan="4">${emptyState('ti-file-invoice','No quotations submitted yet','')}</td></tr>`}</tbody>
+      </table></div>
+      <button class="btn btn-sm" style="margin-top:10px" onclick="openQuotationModal('${wi.id}')"><i class="ti ti-plus"></i> Add quotation</button>
+    </div>`;
+  }).join('') : emptyState('ti-file-invoice', 'No work items tracked', '');
+}
+function openWorkItemModal() {
+  openModal('Add work item', `
+    <div class="form-row"><label class="form-label">Description</label><input class="inp" id="wi-desc" placeholder="e.g. Repaint exterior facade"></div>
+    <div class="form-row"><label class="form-label">Category</label><input class="inp" id="wi-category" placeholder="e.g. Repainting"></div>
+    <div class="form-row"><label class="form-label">Estimated value (SGD)</label><input class="inp" id="wi-value" type="number" placeholder="e.g. 5000"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitWorkItem()"><i class="ti ti-plus"></i> Add work item</button>
+  `);
+}
+function submitWorkItem() {
+  const descEl = document.getElementById('wi-desc');
+  MXUtil.clearFieldError(descEl);
+  if (!MXUtil.validRequired(descEl.value)) { MXUtil.showFieldError(descEl, 'Description required'); return; }
+  MX.set(s => {
+    s.workItems.unshift({ id: MX.uid('wi'), description: descEl.value, category: document.getElementById('wi-category').value || 'General', estimatedValue: Number(document.getElementById('wi-value').value) || 0, quotations: [] });
+  });
+  closeModal();
+  MXUtil.toast('Work item added', 'success');
+  renderQuotations();
+}
+function openQuotationModal(workItemId) {
+  openModal('Add quotation', `
+    <div class="form-row"><label class="form-label">Vendor name</label><input class="inp" id="q-vendor" placeholder="e.g. ColourCoat Pte Ltd"></div>
+    <div class="form-row"><label class="form-label">Amount (SGD)</label><input class="inp" id="q-amount" type="number" placeholder="e.g. 4500"></div>
+    <div class="form-row"><label class="form-label">Submitted date</label><input class="inp" id="q-date" type="date"></div>
+    <div class="form-row"><label class="form-label">Status</label><select class="inp" id="q-status"><option>Received</option><option>Under review</option><option>Awarded</option><option>Rejected</option></select></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitQuotation('${workItemId}')"><i class="ti ti-plus"></i> Add quotation</button>
+  `);
+}
+function submitQuotation(workItemId) {
+  const vendorEl = document.getElementById('q-vendor');
+  MXUtil.clearFieldError(vendorEl);
+  if (!MXUtil.validRequired(vendorEl.value)) { MXUtil.showFieldError(vendorEl, 'Vendor name required'); return; }
+  MX.set(s => {
+    const wi = s.workItems.find(w => w.id === workItemId);
+    if (!wi) return;
+    wi.quotations.push({ id: MX.uid('q'), vendorName: vendorEl.value, amount: Number(document.getElementById('q-amount').value) || 0, submittedDate: document.getElementById('q-date').value || '2025-06-24', status: document.getElementById('q-status').value });
+  });
+  closeModal();
+  MXUtil.toast('Quotation added', 'success');
+  renderQuotations();
+}
+
+function renderCouncil() {
+  const tbody = document.getElementById('council-tbody');
+  const warnBox = document.getElementById('council-warning');
+  if (!tbody) return;
+  const s = MX.get();
+  if (!s.councilMembers.length) { tbody.innerHTML = `<tr><td colspan="6">${emptyState('ti-users-group','No council members recorded','')}</td></tr>`; }
+  else {
+    tbody.innerHTML = s.councilMembers.map(m => `
+      <tr><td>${m.name}</td><td><span class="badge b-blue">${m.role}</span></td><td><span class="unit-tag">${m.unit}</span></td><td>${m.termStart}</td><td>${m.termEnd}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeCouncilMember('${m.id}')">Remove</button></td></tr>`).join('');
+  }
+  const roles = s.councilMembers.map(m => m.role);
+  const missing = ['Chairman','Secretary','Treasurer'].filter(r => !roles.includes(r));
+  warnBox.innerHTML = missing.length ? `<div class="badge b-amber">Missing required office-bearer(s): ${missing.join(', ')}</div>` : `<div class="badge b-green">All required office-bearers (Chairman, Secretary, Treasurer) are filled</div>`;
+}
+function removeCouncilMember(id) {
+  MX.set(s => { s.councilMembers = s.councilMembers.filter(m => m.id !== id); });
+  MXUtil.toast('Council member removed', 'success');
+  renderCouncil();
+}
+function openCouncilModal() {
+  openModal('Add council member', `
+    <div class="form-row"><label class="form-label">Name</label><input class="inp" id="cm-name" placeholder="e.g. Tan Siew Hoon"></div>
+    <div class="form-row"><label class="form-label">Role</label><select class="inp" id="cm-role"><option>Chairman</option><option>Secretary</option><option>Treasurer</option><option>Member</option></select></div>
+    <div class="form-row"><label class="form-label">Unit</label><input class="inp" id="cm-unit" placeholder="e.g. #12-17"></div>
+    <div class="form-row"><label class="form-label">Term start</label><input class="inp" id="cm-start" type="date"></div>
+    <div class="form-row"><label class="form-label">Term end</label><input class="inp" id="cm-end" type="date"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitCouncilMember()"><i class="ti ti-plus"></i> Add member</button>
+  `);
+}
+function submitCouncilMember() {
+  const nameEl = document.getElementById('cm-name');
+  MXUtil.clearFieldError(nameEl);
+  if (!MXUtil.validRequired(nameEl.value)) { MXUtil.showFieldError(nameEl, 'Name required'); return; }
+  MX.set(s => {
+    s.councilMembers.push({ id: MX.uid('cm'), name: nameEl.value, role: document.getElementById('cm-role').value, unit: document.getElementById('cm-unit').value, termStart: document.getElementById('cm-start').value || '2025-06-24', termEnd: document.getElementById('cm-end').value || '' });
+  });
+  closeModal();
+  MXUtil.toast('Council member added', 'success');
+  renderCouncil();
+}
+
+function daysSinceLastAGM() {
+  const s = MX.get();
+  return Math.round((new Date('2025-06-24') - new Date(s.governance.lastAGMDate)) / 86400000);
+}
+function daysToAGMDeadline() {
+  const s = MX.get();
+  const deadline = new Date(s.governance.lastAGMDate);
+  deadline.setMonth(deadline.getMonth() + 15);
+  return Math.round((deadline - new Date('2025-06-24')) / 86400000);
+}
+function renderGovernance() {
+  const kpiBox = document.getElementById('gov-kpis');
+  const agmBox = document.getElementById('gov-agm-detail');
+  if (!kpiBox) return;
+  const s = MX.get();
+  const daysLeft = daysToAGMDeadline();
+  const contractsRenewing = s.vendors.filter(v => daysUntil(v.contractExpiry) <= 60).length;
+  const minutesDisplaying = s.minutesRegister.filter(m => minutesStatus(m) === 'Displaying').length;
+  const openPolls = s.polls.filter(p => p.status === 'Open').length;
+  kpiBox.innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">Days to AGM deadline</div>
+      <div class="kpi-value" style="color:${daysLeft < 0 ? 'var(--mx-red)' : daysLeft <= 30 ? 'var(--mx-amber)' : 'var(--mx-white)'}">${daysLeft}</div>
+      <div class="kpi-sub">15-month BMSMA limit</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Contracts renewing soon</div>
+      <div class="kpi-value">${contractsRenewing}</div>
+      <div class="kpi-sub">Within 60 days</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Minutes within display window</div>
+      <div class="kpi-value">${minutesDisplaying}</div>
+      <div class="kpi-sub">BMSMA Sch. 2 — 14 days</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Open polls</div>
+      <div class="kpi-value">${openPolls}</div>
+      <div class="kpi-sub">Awaiting votes</div>
+    </div>`;
+  agmBox.innerHTML = `
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Last AGM date</span><strong style="color:var(--mx-white)">${s.governance.lastAGMDate}</strong></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Days since last AGM</span><span>${daysSinceLastAGM()}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Status</span>${daysLeft < 0 ? '<span class="badge b-red">Overdue — AGM required immediately</span>' : daysLeft <= 30 ? '<span class="badge b-amber">Approaching 15-month deadline</span>' : '<span class="badge b-green">Within compliance window</span>'}</div>
+  `;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -2293,6 +2677,10 @@ function renderPage(id) {
   if (id === 'polls') renderPolls();
   if (id === 'parcels') renderParcels();
   if (id === 'vendors') renderVendors();
+  if (id === 'governance') renderGovernance();
+  if (id === 'minutes') renderMinutes();
+  if (id === 'quotations') renderQuotations();
+  if (id === 'council') renderCouncil();
   if (id === 'settings') renderSettingsPage();
 }
 function renderAll() {
@@ -2300,6 +2688,17 @@ function renderAll() {
   renderPage(cur);
 }
 renderAll();
+
+function checkContractRenewalToast() {
+  if (sessionStorage.getItem('managex_contract_toast_shown')) return;
+  const s = MX.get();
+  const expiringSoon = s.vendors.some(v => { const d = daysUntil(v.contractExpiry); return d >= 0 && d <= 30; });
+  if (expiringSoon) {
+    MXUtil.toast('One or more vendor contracts expire within 30 days — review Vendors', 'info');
+    sessionStorage.setItem('managex_contract_toast_shown', '1');
+  }
+}
+checkContractRenewalToast();
 </script>
 </body>
 </html>

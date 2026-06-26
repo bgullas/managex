@@ -105,13 +105,15 @@
       polls: [
         {
           id: 'p1', title: 'AGM 2025 — Approve repainting budget of $180,000', status: 'Open',
+          category: 'AGM Resolution', resolutionType: 'Special resolution',
           options: [{ label: 'Approve', votes: 0 }, { label: 'Reject', votes: 0 }, { label: 'Abstain', votes: 0 }],
-          voters: {},
+          voters: {}, proxyVotes: [],
         },
         {
           id: 'p2', title: 'Re-elect MC Chairperson — Mdm Tan Siew Hoon', status: 'Closed',
+          category: 'AGM Resolution', resolutionType: 'Ordinary resolution',
           options: [{ label: 'Yes', votes: 198 }, { label: 'No', votes: 24 }],
-          voters: {},
+          voters: {}, proxyVotes: [],
         },
       ],
       parcels: [
@@ -120,12 +122,42 @@
         { id: 'pa3', unit: '#12-17', courier: 'SingPost', desc: 'Registered mail', received: '24 Jun, 11:02am', status: 'Pending collection' },
       ],
       vendors: [
-        { id: 'v1', name: 'Otis Lift Maintenance', category: 'Lift maintenance', contact: '+65 6555 1234', contractExpiry: '2025-09-30' },
-        { id: 'v2', name: 'BrightSpark Electrical', category: 'Electrical', contact: '+65 6555 9876', contractExpiry: '2026-02-15' },
-        { id: 'v3', name: 'CleanCo Pte Ltd', category: 'Cleaning', contact: '+65 6555 4567', contractExpiry: '2025-07-20' },
-        { id: 'v4', name: 'GreenScape Landscaping', category: 'Landscaping', contact: '+65 6555 7788', contractExpiry: '2025-12-01' },
-        { id: 'v5', name: 'SecureGuard Services', category: 'Security', contact: '+65 6555 3322', contractExpiry: '2025-08-05' },
+        { id: 'v1', name: 'Otis Lift Maintenance', category: 'Lift maintenance', contact: '+65 6555 1234', contractExpiry: '2025-09-30', contractValue: 24000, contractStartDate: '2024-09-30', renewalTerms: 'Fixed term — manual renewal', contractDocName: 'otis-lift-contract-2024.pdf', contractHistory: [] },
+        { id: 'v2', name: 'BrightSpark Electrical', category: 'Electrical', contact: '+65 6555 9876', contractExpiry: '2026-02-15', contractValue: 9600, contractStartDate: '2025-02-15', renewalTerms: 'Auto-renew annually', contractDocName: null, contractHistory: [] },
+        { id: 'v3', name: 'CleanCo Pte Ltd', category: 'Cleaning', contact: '+65 6555 4567', contractExpiry: '2025-07-20', contractValue: 86400, contractStartDate: '2024-07-20', renewalTerms: 'Fixed term — manual renewal', contractDocName: 'cleanco-contract-2024.pdf', contractHistory: [] },
+        { id: 'v4', name: 'GreenScape Landscaping', category: 'Landscaping', contact: '+65 6555 7788', contractExpiry: '2025-12-01', contractValue: 18000, contractStartDate: '2024-12-01', renewalTerms: 'Month-to-month', contractDocName: null, contractHistory: [] },
+        { id: 'v5', name: 'SecureGuard Services', category: 'Security', contact: '+65 6555 3322', contractExpiry: '2025-08-05', contractValue: 144000, contractStartDate: '2024-08-05', renewalTerms: 'Fixed term — manual renewal', contractDocName: 'secureguard-contract-2024.pdf', contractHistory: [] },
       ],
+      minutesRegister: [
+        { id: 'mr1', meetingType: 'AGM', meetingDate: '2024-07-22', docRef: 'AGM Minutes — 2024', displayedFrom: '2024-07-25' },
+        { id: 'mr2', meetingType: 'Council Meeting', meetingDate: '2025-05-10', docRef: 'Council Meeting Minutes — May 2025', displayedFrom: '2025-05-13' },
+        { id: 'mr3', meetingType: 'Extraordinary General Meeting', meetingDate: '2025-06-20', docRef: 'EGM Minutes — Jun 2025', displayedFrom: '2025-06-21' },
+      ],
+      quoteThreshold: 3000,
+      workItems: [
+        {
+          id: 'wi1', description: 'Repaint exterior facade Towers A & B', category: 'Repainting', estimatedValue: 180000,
+          quotations: [
+            { id: 'q1', vendorName: 'ColourCoat Pte Ltd', amount: 175000, submittedDate: '2025-05-02', status: 'Received' },
+            { id: 'q2', vendorName: 'Nippon Paint Projects', amount: 182000, submittedDate: '2025-05-04', status: 'Under review' },
+          ],
+        },
+        {
+          id: 'wi2', description: 'Replace lobby CCTV system', category: 'Security upgrade', estimatedValue: 12000,
+          quotations: [
+            { id: 'q3', vendorName: 'SecureGuard Services', amount: 11500, submittedDate: '2025-06-01', status: 'Awarded' },
+          ],
+        },
+      ],
+      councilMembers: [
+        { id: 'cm1', name: 'Tan Siew Hoon', role: 'Chairman', unit: '#12-17', termStart: '2024-07-22', termEnd: '2027-07-22' },
+        { id: 'cm2', name: 'Rajesh Kumar', role: 'Secretary', unit: '#02-14', termStart: '2024-07-22', termEnd: '2027-07-22' },
+        { id: 'cm3', name: 'Lee Hwee Leng', role: 'Treasurer', unit: '#04-22', termStart: '2024-07-22', termEnd: '2027-07-22' },
+        { id: 'cm4', name: 'Noor Fadhilah', role: 'Member', unit: '#07-08', termStart: '2024-07-22', termEnd: '2027-07-22' },
+      ],
+      governance: {
+        lastAGMDate: '2024-07-22',
+      },
       paynow: {
         mode: 'generated',
         uen: '202411234A',
@@ -139,7 +171,16 @@
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const fresh = seed();
+        let migrated = false;
+        Object.keys(fresh).forEach(key => {
+          if (!(key in parsed)) { parsed[key] = fresh[key]; migrated = true; }
+        });
+        if (migrated) save(parsed);
+        return parsed;
+      }
     } catch (e) { /* corrupt, fall through to reseed */ }
     const s = seed();
     save(s);
