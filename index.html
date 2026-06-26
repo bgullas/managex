@@ -584,13 +584,22 @@ select.inp { cursor: pointer; }
     </div>
   </div>
 
-  <div class="property-selector" title="Switch property">
+  <div class="property-selector" id="property-selector" title="Switch property" onclick="openPropertySwitchModal()">
     <span class="prop-dot"></span>
     <div>
-      <div class="prop-name">Riviera Gardens</div>
-      <div class="prop-units">312 units · Bishan, SG</div>
+      <div class="prop-name" id="prop-selector-name">Riviera Gardens</div>
+      <div class="prop-units" id="prop-selector-units">312 units · Bishan, SG</div>
     </div>
     <i class="ti ti-chevron-down" style="font-size:13px;color:var(--mx-muted)" aria-hidden="true"></i>
+  </div>
+
+  <div class="form-row" style="padding:0 14px 10px;margin:0">
+    <label class="form-label" style="font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--mx-muted)">Viewing as</label>
+    <select class="inp" id="role-switcher" onchange="switchRole(this.value)" style="font-size:12px;padding:7px 9px">
+      <option value="bluegraph">BluGraph (Super Admin)</option>
+      <option value="ma">MA Company (Frontline)</option>
+      <option value="property" selected>Property MA Office</option>
+    </select>
   </div>
 
   <div class="nav-wrap" id="nav-root"></div>
@@ -1082,6 +1091,25 @@ select.inp { cursor: pointer; }
       <p style="color:var(--mx-secondary);font-size:13px">Property configuration, user roles, API keys, email templates, PayNow UEN setup, ANPR integration, and notification preferences.</p>
     </div>
     <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><i class="ti ti-building-community" aria-hidden="true"></i> Property settings</div>
+      <p style="color:var(--mx-secondary);font-size:12.5px;margin-bottom:14px">This property's own details and logo — separate from the managing agent company's branding.</p>
+      <div class="grid2">
+        <div class="form-row"><label class="form-label">Property name</label><input class="inp" id="prop-name-input"></div>
+        <div class="form-row"><label class="form-label">Address</label><input class="inp" id="prop-address-input"></div>
+      </div>
+      <div class="form-row"><label class="form-label">Units</label><input class="inp" id="prop-units-input" type="number"></div>
+      <div class="form-row">
+        <label class="form-label">Property logo</label>
+        <div class="upload-zone" onclick="document.getElementById('prop-logo-file').click()">
+          <i class="ti ti-cloud-upload" style="font-size:22px;color:var(--mx-muted)" aria-hidden="true"></i>
+          <div style="font-size:12px;color:var(--mx-secondary);margin-top:6px">Click to upload this property's logo (PNG/JPG)</div>
+        </div>
+        <input type="file" id="prop-logo-file" accept="image/*" style="display:none" onchange="handlePropLogoUpload(event)">
+        <div id="prop-logo-preview" style="margin-top:10px"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="savePropertyDetails()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save property details</button>
+    </div>
+    <div class="card" style="margin-bottom:14px">
       <div class="card-title"><i class="ti ti-qrcode" aria-hidden="true"></i> PayNow QR setup</div>
       <p style="color:var(--mx-secondary);font-size:12.5px;margin-bottom:14px">Choose how residents see your PayNow QR on the Payments page. Either option is display-only — neither completes a transaction or tells ManAgeX whether a resident actually paid (see note below).</p>
       <div class="tab-bar" style="margin-bottom:14px">
@@ -1118,6 +1146,47 @@ select.inp { cursor: pointer; }
       <button class="btn btn-sm btn-primary" onclick="openMaintenanceModal()"><i class="ti ti-plus" aria-hidden="true"></i> New ticket</button>
     </div>
     <div class="kanban-wrap" id="maintenance-kanban"></div>
+  </div>
+
+  <!-- ════ SECURITY DASHBOARD ════ -->
+  <div class="page" id="page-security">
+    <div class="section-hdr">
+      <div class="section-hdr-title">On-site security overview</div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><i class="ti ti-id" aria-hidden="true"></i> Today's visitors</div>
+      <div id="security-visitors-list"></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><i class="ti ti-truck-delivery" aria-hidden="true"></i> Scheduled contractors</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Vendor</th><th>Purpose</th><th>Date</th><th>Time window</th><th>Status</th></tr></thead>
+        <tbody id="security-contractors-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-hammer" aria-hidden="true"></i> Approved renovation works on-site</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Unit</th><th>Work description</th><th>Contractor</th><th>Dates</th></tr></thead>
+        <tbody id="security-renovations-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ════ RENOVATION REQUESTS ════ -->
+  <div class="page" id="page-renovations">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Renovation requests</div>
+    </div>
+    <div id="renovations-list"></div>
+  </div>
+
+  <!-- ════ RESIDENT FEEDBACK ════ -->
+  <div class="page" id="page-feedback">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Resident feedback & complaints</div>
+    </div>
+    <div id="feedback-list"></div>
   </div>
 
   <!-- ════ ANNOUNCEMENTS ════ -->
@@ -1200,7 +1269,7 @@ select.inp { cursor: pointer; }
     </div>
     <div class="card">
       <div class="tbl-wrap"><table>
-        <thead><tr><th>Meeting type</th><th>Meeting date</th><th>Doc reference</th><th>Displayed from</th><th>Displayed until</th><th>Status</th></tr></thead>
+        <thead><tr><th>Meeting type</th><th>Meeting date</th><th>Doc reference</th><th>Displayed from</th><th>Displayed until</th><th>Status</th><th></th></tr></thead>
         <tbody id="minutes-tbody"></tbody>
       </table></div>
       <div style="font-size:11px;color:var(--mx-muted);margin-top:10px">BMSMA Sch. 2 — min. 14 days display</div>
@@ -1231,6 +1300,52 @@ select.inp { cursor: pointer; }
     </div>
   </div>
 
+  <!-- ════ BLUGRAPH SUPER ADMIN ════ -->
+  <div class="page" id="page-bg-dashboard">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Managing agent companies on the platform</div>
+    </div>
+    <div class="grid4" id="bg-kpis" style="margin-bottom:16px"></div>
+    <div id="bg-ma-list"></div>
+    <div class="card" id="bg-ma-detail" style="display:none;margin-top:14px"></div>
+  </div>
+
+  <!-- ════ MA COMPANY VIEW ════ -->
+  <div class="page" id="page-ma-dashboard">
+    <div class="section-hdr">
+      <div class="section-hdr-title">Frontline Property Management — company settings</div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><i class="ti ti-building" aria-hidden="true"></i> Company details</div>
+      <div class="grid2">
+        <div class="form-row"><label class="form-label">Company name</label><input class="inp" id="ma-name-input"></div>
+        <div class="form-row"><label class="form-label">Contact email</label><input class="inp" id="ma-email-input"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Company logo</label>
+        <div class="upload-zone" onclick="document.getElementById('ma-logo-file').click()">
+          <i class="ti ti-cloud-upload" style="font-size:22px;color:var(--mx-muted)" aria-hidden="true"></i>
+          <div style="font-size:12px;color:var(--mx-secondary);margin-top:6px">Click to upload company logo (PNG/JPG)</div>
+        </div>
+        <input type="file" id="ma-logo-file" accept="image/*" style="display:none" onchange="handleMaLogoUpload(event)">
+        <div id="ma-logo-preview" style="margin-top:10px"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveMaCompanyDetails()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save company details</button>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><i class="ti ti-toggle-right" aria-hidden="true"></i> Default sub-modules for properties</div>
+      <p style="color:var(--mx-secondary);font-size:12.5px;margin-bottom:10px">These map to the Residents / Operations / Governance / Finance nav groups used across all properties under this MA.</p>
+      <div id="ma-modules-toggles"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-building-community" aria-hidden="true"></i> Properties under this MA</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Property</th><th>Address</th><th>Units</th><th>Status</th></tr></thead>
+        <tbody id="ma-properties-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
   </main>
 </div>
 </div>
@@ -1251,13 +1366,16 @@ const NAV = [
   ]},
   {group:"Operations", items:[
     {id:"access", icon:"ti-shield-lock", label:"Access Control"},
+    {id:"security", icon:"ti-shield-check", label:"Security Dashboard"},
     {id:"facilities", icon:"ti-building-community", label:"Facilities"},
     {id:"maintenance", icon:"ti-tool", label:"Maintenance", badgeKey:"maintenanceOpen"},
+    {id:"renovations", icon:"ti-hammer", label:"Renovation Requests", badgeKey:"renovationsPending"},
     {id:"announcements", icon:"ti-speakerphone", label:"Announcements"},
     {id:"documents", icon:"ti-files", label:"Documents"},
     {id:"polls", icon:"ti-chart-pie-2", label:"Polls / e-Voting"},
     {id:"parcels", icon:"ti-package", label:"Parcels", badgeKey:"parcelsPending"},
     {id:"vendors", icon:"ti-briefcase", label:"Vendors"},
+    {id:"feedback", icon:"ti-message-report", label:"Resident Feedback", badgeKey:"feedbackOpen"},
   ]},
   {group:"Governance", items:[
     {id:"governance", icon:"ti-gavel", label:"Governance Overview"},
@@ -1272,6 +1390,18 @@ const NAV = [
   ]},
 ];
 
+const BLUEGRAPH_NAV = [
+  {group:"Platform", items:[
+    {id:"bg-dashboard", icon:"ti-server-2", label:"BluGraph Overview"},
+  ]},
+];
+
+const MA_NAV = [
+  {group:"MA Company", items:[
+    {id:"ma-dashboard", icon:"ti-building", label:"Company Settings"},
+  ]},
+];
+
 const TITLES = {
   dashboard:"Dashboard", tenants:"Owners & Tenants",
   vehicles:"Vehicle Registry", access:"Access Control",
@@ -1281,7 +1411,10 @@ const TITLES = {
   documents:"Documents", polls:"Polls / AGM e-Voting",
   parcels:"Parcels & Deliveries", vendors:"Vendor Registry",
   governance:"Governance Overview", minutes:"Meeting Minutes Register",
-  quotations:"Quotation / Tender Tracker", council:"Council Members Registry"
+  quotations:"Quotation / Tender Tracker", council:"Council Members Registry",
+  security:"Security Dashboard", renovations:"Renovation Requests",
+  feedback:"Resident Feedback",
+  "bg-dashboard":"BluGraph — Super Admin", "ma-dashboard":"MA Company Settings",
 };
 
 function navBadgeCount(key) {
@@ -1289,13 +1422,22 @@ function navBadgeCount(key) {
   if (key === 'pendingTenants') return s.pendingTenants.length;
   if (key === 'maintenanceOpen') return s.maintenanceTickets.filter(t => t.status === 'Open').length;
   if (key === 'parcelsPending') return s.parcels.filter(p => p.status === 'Pending collection').length;
+  if (key === 'renovationsPending') return s.renovationRequests.filter(r => r.status === 'Pending review').length;
+  if (key === 'feedbackOpen') return s.feedback.filter(f => f.status !== 'Resolved').length;
   return 0;
+}
+
+let currentRole = 'property';
+function activeNavSet() {
+  if (currentRole === 'bluegraph') return BLUEGRAPH_NAV;
+  if (currentRole === 'ma') return MA_NAV;
+  return NAV;
 }
 
 function renderNav() {
   const root = document.getElementById('nav-root');
   root.innerHTML = '';
-  NAV.forEach(g => {
+  activeNavSet().forEach(g => {
     root.innerHTML += `<div class="nav-group"><div class="nav-group-label">${g.group}</div>` +
       g.items.map(it => {
         const count = it.badgeKey ? navBadgeCount(it.badgeKey) : 0;
@@ -1312,6 +1454,20 @@ function renderNav() {
 
 let cur = 'dashboard';
 renderNav();
+
+function switchRole(role) {
+  currentRole = role;
+  if (role === 'bluegraph') cur = 'bg-dashboard';
+  else if (role === 'ma') cur = 'ma-dashboard';
+  else cur = 'dashboard';
+  document.querySelectorAll('.page.active').forEach(p => p.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + cur);
+  if (pageEl) pageEl.classList.add('active');
+  document.getElementById('pg-title').textContent = TITLES[cur] || cur;
+  document.getElementById('property-selector').style.display = role === 'property' ? 'flex' : 'none';
+  renderNav();
+  renderPage(cur);
+}
 
 function goto(id) {
   if (!document.getElementById('page-' + id)) return;
@@ -1627,7 +1783,21 @@ function renderGuestsList() {
         <div style="font-size:11px;color:var(--mx-muted);margin-top:2px">Valid: ${fmtDT(g.validFrom)} – ${fmtDT(g.validTo)}</div>
       </div>
       ${guestStatusBadge(g.status)}
+      <button class="btn btn-sm" style="margin-left:6px" onclick="printGuestPass('${g.id}')"><i class="ti ti-printer"></i></button>
     </div>`).join('');
+}
+function printGuestPass(id) {
+  const g = MX.get().guests.find(x => x.id === id);
+  if (!g) return;
+  MXUtil.printRecord('Guest Visitor Pass', `
+    <div class="pr-row"><span class="pr-label">${g.plate ? 'Vehicle plate' : 'Guest name'}</span><span>${g.plate || g.name}</span></div>
+    <div class="pr-row"><span class="pr-label">Visiting unit</span><span>${g.unit}</span></div>
+    <div class="pr-row"><span class="pr-label">Phone</span><span>${g.phone || '—'}</span></div>
+    <div class="pr-row"><span class="pr-label">Valid from</span><span>${fmtDT(g.validFrom)}</span></div>
+    <div class="pr-row"><span class="pr-label">Valid to</span><span>${fmtDT(g.validTo)}</span></div>
+    <div class="pr-row"><span class="pr-label">Pass ID</span><span>${g.qrId}</span></div>
+    <div class="pr-row"><span class="pr-label">Status</span><span class="pr-badge">${g.status}</span></div>
+  `);
 }
 function fmtDT(v) {
   if (!v) return '';
@@ -2206,8 +2376,35 @@ function renderVendors() {
       <td>${v.renewalTerms || '—'}</td>
       <td>${v.contractExpiry} ${soon ? '<span class="badge b-amber" style="margin-left:6px">Renewal due soon</span>' : ''}</td>
       <td>${v.contractDocName || '—'}</td>
-      <td style="display:flex;gap:6px"><button class="btn btn-sm" onclick="MXUtil.toast('Opening vendor profile for ${v.name}','info')">Details</button><button class="btn btn-sm btn-primary" onclick="openRenewVendorModal('${v.id}')">Renew</button></td></tr>`;
+      <td style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openVendorDetailModal('${v.id}')">Details</button><button class="btn btn-sm btn-primary" onclick="openRenewVendorModal('${v.id}')">Renew</button></td></tr>`;
   }).join('');
+}
+function openVendorDetailModal(id) {
+  const v = MX.get().vendors.find(v => v.id === id);
+  if (!v) return;
+  openModal('Vendor — ' + v.name, `
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Category</span><span class="badge b-blue">${v.category}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Contact</span><span>${v.contact}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Contract value</span><span>${v.contractValue != null ? '$' + v.contractValue.toLocaleString() : '—'}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Contract start</span><span>${v.contractStartDate || '—'}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Contract expiry</span><span>${v.contractExpiry}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Renewal terms</span><span>${v.renewalTerms || '—'}</span></div>
+    <div class="stat-row"><span style="color:var(--mx-secondary)">Contract document</span><span>${v.contractDocName || '—'}</span></div>
+    <button class="btn btn-sm" style="margin-top:12px;width:100%;justify-content:center" onclick="printVendorRecord('${v.id}')"><i class="ti ti-printer"></i> Print contract record</button>
+  `);
+}
+function printVendorRecord(id) {
+  const v = MX.get().vendors.find(v => v.id === id);
+  if (!v) return;
+  MXUtil.printRecord('Vendor Contract Record — ' + v.name, `
+    <div class="pr-row"><span class="pr-label">Category</span><span>${v.category}</span></div>
+    <div class="pr-row"><span class="pr-label">Contact</span><span>${v.contact}</span></div>
+    <div class="pr-row"><span class="pr-label">Contract value</span><span>${v.contractValue != null ? '$' + v.contractValue.toLocaleString() : '—'}</span></div>
+    <div class="pr-row"><span class="pr-label">Contract start</span><span>${v.contractStartDate || '—'}</span></div>
+    <div class="pr-row"><span class="pr-label">Contract expiry</span><span>${v.contractExpiry}</span></div>
+    <div class="pr-row"><span class="pr-label">Renewal terms</span><span>${v.renewalTerms || '—'}</span></div>
+    <div class="pr-row"><span class="pr-label">Contract document</span><span>${v.contractDocName || '—'}</span></div>
+  `);
 }
 function openVendorModal() {
   openModal('Add vendor', `
@@ -2294,13 +2491,26 @@ function renderMinutes() {
   const tbody = document.getElementById('minutes-tbody');
   if (!tbody) return;
   const s = MX.get();
-  if (!s.minutesRegister.length) { tbody.innerHTML = `<tr><td colspan="6">${emptyState('ti-notebook','No minutes recorded','')}</td></tr>`; return; }
+  if (!s.minutesRegister.length) { tbody.innerHTML = `<tr><td colspan="7">${emptyState('ti-notebook','No minutes recorded','')}</td></tr>`; return; }
   const badgeMap = { 'Displaying': 'b-green', 'Display period complete': 'b-gray', 'Not yet posted': 'b-amber' };
   tbody.innerHTML = s.minutesRegister.map(m => {
     const status = minutesStatus(m);
     return `<tr><td>${m.meetingType}</td><td>${m.meetingDate}</td><td>${m.docRef}</td><td>${m.displayedFrom}</td><td>${minutesDisplayedUntil(m)}</td>
-      <td><span class="badge ${badgeMap[status]}">${status}</span></td></tr>`;
+      <td><span class="badge ${badgeMap[status]}">${status}</span></td>
+      <td><button class="btn btn-sm" onclick="printMinutesRecord('${m.id}')"><i class="ti ti-printer"></i></button></td></tr>`;
   }).join('');
+}
+function printMinutesRecord(id) {
+  const m = MX.get().minutesRegister.find(x => x.id === id);
+  if (!m) return;
+  MXUtil.printRecord('Council Meeting Minutes — ' + m.meetingType, `
+    <div class="pr-row"><span class="pr-label">Meeting type</span><span>${m.meetingType}</span></div>
+    <div class="pr-row"><span class="pr-label">Meeting date</span><span>${m.meetingDate}</span></div>
+    <div class="pr-row"><span class="pr-label">Document reference</span><span>${m.docRef}</span></div>
+    <div class="pr-row"><span class="pr-label">Displayed from</span><span>${m.displayedFrom}</span></div>
+    <div class="pr-row"><span class="pr-label">Displayed until</span><span>${minutesDisplayedUntil(m)}</span></div>
+    <div class="pr-row"><span class="pr-label">Status</span><span class="pr-badge">${minutesStatus(m)}</span></div>
+  `);
 }
 function openMinutesModal() {
   openModal('Add meeting minutes', `
@@ -2342,9 +2552,24 @@ function renderQuotations() {
         <thead><tr><th>Vendor</th><th>Amount</th><th>Submitted</th><th>Status</th></tr></thead>
         <tbody>${wi.quotations.map(q => `<tr><td>${q.vendorName}</td><td>$${q.amount.toLocaleString()}</td><td>${q.submittedDate}</td><td><span class="badge ${q.status==='Awarded'?'b-green':q.status==='Rejected'?'b-red':q.status==='Under review'?'b-amber':'b-gray'}">${q.status}</span></td></tr>`).join('') || `<tr><td colspan="4">${emptyState('ti-file-invoice','No quotations submitted yet','')}</td></tr>`}</tbody>
       </table></div>
-      <button class="btn btn-sm" style="margin-top:10px" onclick="openQuotationModal('${wi.id}')"><i class="ti ti-plus"></i> Add quotation</button>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-sm" onclick="openQuotationModal('${wi.id}')"><i class="ti ti-plus"></i> Add quotation</button>
+        <button class="btn btn-sm" onclick="printWorkItemRecord('${wi.id}')"><i class="ti ti-printer"></i> Print</button>
+      </div>
     </div>`;
   }).join('') : emptyState('ti-file-invoice', 'No work items tracked', '');
+}
+function printWorkItemRecord(id) {
+  const wi = MX.get().workItems.find(w => w.id === id);
+  if (!wi) return;
+  MXUtil.printRecord('Quotation / Work Item — ' + wi.description, `
+    <div class="pr-row"><span class="pr-label">Category</span><span>${wi.category}</span></div>
+    <div class="pr-row"><span class="pr-label">Estimated value</span><span>$${wi.estimatedValue.toLocaleString()}</span></div>
+    <table>
+      <thead><tr><th>Vendor</th><th>Amount</th><th>Submitted</th><th>Status</th></tr></thead>
+      <tbody>${wi.quotations.map(q => `<tr><td>${q.vendorName}</td><td>$${q.amount.toLocaleString()}</td><td>${q.submittedDate}</td><td>${q.status}</td></tr>`).join('') || '<tr><td colspan="4">No quotations submitted</td></tr>'}</tbody>
+    </table>
+  `);
 }
 function openWorkItemModal() {
   openModal('Add work item', `
@@ -2660,6 +2885,302 @@ function handlePaynowUpload(evt) {
 }
 
 /* ════════════════════════════════════════════════════════════════
+   Property switcher modal (lightweight — switches the active property's
+   header label; full per-property operational data partitioning is out
+   of scope for this demo, see CLAUDE.md notes)
+   ════════════════════════════════════════════════════════════════ */
+function openPropertySwitchModal() {
+  const s = MX.get();
+  const ma = s.platform.maCompanies.find(m => m.id === s.platform.currentMACompanyId);
+  const props = s.platform.properties.filter(p => ma.propertyIds.includes(p.id));
+  openModal('Switch property', `
+    <p style="color:var(--mx-secondary);font-size:12px;margin-bottom:12px">Only "Riviera Gardens" has full operational data in this demo — other properties are shown at MA/BluGraph summary level only.</p>
+    ${props.map(p => `
+      <div class="stat-row" style="cursor:pointer" onclick="setActiveProperty('${p.id}')">
+        <div><div style="font-weight:500">${p.name}</div><div style="font-size:11px;color:var(--mx-muted)">${p.address} · ${p.units} units</div></div>
+        ${p.id === s.platform.currentPropertyId ? '<span class="badge b-green">Active</span>' : '<button class="btn btn-sm">Switch</button>'}
+      </div>`).join('')}
+  `);
+}
+function setActiveProperty(id) {
+  const s = MX.get();
+  const prop = s.platform.properties.find(p => p.id === id);
+  if (!prop) return;
+  if (prop.id !== 'prop-riviera') {
+    MXUtil.toast(`${prop.name} doesn't have full operational data in this demo — staying on Riviera Gardens`, 'info');
+    closeModal();
+    return;
+  }
+  MX.set(st => { st.platform.currentPropertyId = id; });
+  closeModal();
+  renderPropertySelectorLabel();
+  MXUtil.toast(`Switched to ${prop.name}`, 'success');
+}
+function renderPropertySelectorLabel() {
+  const s = MX.get();
+  const prop = s.platform.properties.find(p => p.id === s.platform.currentPropertyId) || s.platform.properties[0];
+  const nameEl = document.getElementById('prop-selector-name');
+  const unitsEl = document.getElementById('prop-selector-units');
+  if (nameEl) nameEl.textContent = prop.name;
+  if (unitsEl) unitsEl.textContent = `${prop.units} units · ${prop.address}`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Security dashboard — read-focused visitor/contractor/renovation view
+   ════════════════════════════════════════════════════════════════ */
+function renderSecurityDashboard() {
+  const s = MX.get();
+  const visitorsBox = document.getElementById('security-visitors-list');
+  if (visitorsBox) {
+    const active = s.guests.filter(g => g.status === 'Active' || g.status === 'Pending ANPR');
+    visitorsBox.innerHTML = active.length ? active.map(g => `
+      <div class="stat-row">
+        <div><div style="font-weight:500">${g.plate || g.name}</div><div style="font-size:11px;color:var(--mx-muted)">Unit ${g.unit} · ${new Date(g.validFrom).toLocaleString('en-SG',{hour:'numeric',minute:'2-digit'})}–${new Date(g.validTo).toLocaleString('en-SG',{hour:'numeric',minute:'2-digit'})}</div></div>
+        <span class="badge ${g.status === 'Active' ? 'b-green' : 'b-amber'}">${g.status}</span>
+      </div>`).join('') : emptyState('ti-id', 'No active or pending visitors right now', '');
+  }
+  const ctTbody = document.getElementById('security-contractors-tbody');
+  if (ctTbody) {
+    ctTbody.innerHTML = s.contractorSchedule.length ? s.contractorSchedule.map(c => `
+      <tr><td>${c.vendorName}</td><td>${c.purpose}</td><td>${c.date}</td><td>${c.window}</td><td><span class="badge ${c.status === 'Confirmed' ? 'b-green' : 'b-amber'}">${c.status}</span></td></tr>
+    `).join('') : `<tr><td colspan="5">${emptyState('ti-truck-delivery','No contractors scheduled','')}</td></tr>`;
+  }
+  const rnTbody = document.getElementById('security-renovations-tbody');
+  if (rnTbody) {
+    const approved = s.renovationRequests.filter(r => r.status === 'Approved');
+    rnTbody.innerHTML = approved.length ? approved.map(r => `
+      <tr><td><span class="unit-tag">${r.unit}</span></td><td>${r.workDescription}</td><td>${r.contractorName}</td><td>${r.startDate} – ${r.endDate}</td></tr>
+    `).join('') : `<tr><td colspan="4">${emptyState('ti-hammer','No approved renovation works scheduled','')}</td></tr>`;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Renovation requests — MA approval workflow
+   ════════════════════════════════════════════════════════════════ */
+function renovationStatusBadge(status) {
+  const map = { 'Pending review': 'b-amber', 'Approved': 'b-green', 'Rejected': 'b-red' };
+  return `<span class="badge ${map[status] || 'b-gray'}">${status}</span>`;
+}
+function renderRenovations() {
+  const box = document.getElementById('renovations-list');
+  if (!box) return;
+  const s = MX.get();
+  box.innerHTML = s.renovationRequests.length ? s.renovationRequests.slice().reverse().map(r => `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="justify-content:space-between">
+        <span><i class="ti ti-hammer"></i> ${r.workDescription} <span class="unit-tag" style="margin-left:6px">${r.unit}</span></span>
+        ${renovationStatusBadge(r.status)}
+      </div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Contractor</span><span>${r.contractorName} · ${r.contractorContact || '—'}</span></div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Proposed dates</span><span>${r.startDate} – ${r.endDate}</span></div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Supporting document</span><span>${r.docName || '—'}</span></div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Submitted</span><span>${r.submitted || '—'}</span></div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        ${r.status === 'Pending review' ? `
+          <button class="btn btn-sm btn-success" onclick="approveRenovation('${r.id}')"><i class="ti ti-check"></i> Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="rejectRenovation('${r.id}')"><i class="ti ti-x"></i> Reject</button>` : ''}
+        <button class="btn btn-sm" onclick="printRenovationRequest('${r.id}')"><i class="ti ti-printer"></i> Print</button>
+      </div>
+    </div>`).join('') : emptyState('ti-hammer', 'No renovation requests submitted yet', '');
+}
+function approveRenovation(id) {
+  MX.set(s => { const r = s.renovationRequests.find(x => x.id === id); if (r) r.status = 'Approved'; });
+  MXUtil.toast('Renovation request approved — now visible to Security', 'success');
+  renderRenovations(); renderNav();
+}
+function rejectRenovation(id) {
+  MX.set(s => { const r = s.renovationRequests.find(x => x.id === id); if (r) r.status = 'Rejected'; });
+  MXUtil.toast('Renovation request rejected', 'error');
+  renderRenovations(); renderNav();
+}
+function printRenovationRequest(id) {
+  const r = MX.get().renovationRequests.find(x => x.id === id);
+  if (!r) return;
+  MXUtil.printRecord('Renovation Request — ' + r.unit, `
+    <div class="pr-row"><span class="pr-label">Unit</span><span>${r.unit}</span></div>
+    <div class="pr-row"><span class="pr-label">Work description</span><span>${r.workDescription}</span></div>
+    <div class="pr-row"><span class="pr-label">Contractor</span><span>${r.contractorName} (${r.contractorContact || '—'})</span></div>
+    <div class="pr-row"><span class="pr-label">Proposed dates</span><span>${r.startDate} – ${r.endDate}</span></div>
+    <div class="pr-row"><span class="pr-label">Supporting document</span><span>${r.docName || '—'}</span></div>
+    <div class="pr-row"><span class="pr-label">Submitted</span><span>${r.submitted || '—'}</span></div>
+    <div class="pr-row"><span class="pr-label">Status / outcome</span><span class="pr-badge">${r.status}</span></div>
+  `);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Resident feedback / complaints
+   ════════════════════════════════════════════════════════════════ */
+function renderFeedback() {
+  const box = document.getElementById('feedback-list');
+  if (!box) return;
+  const s = MX.get();
+  box.innerHTML = s.feedback.length ? s.feedback.slice().reverse().map(f => `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="justify-content:space-between">
+        <span><i class="ti ti-message-report"></i> ${f.category} <span class="unit-tag" style="margin-left:6px">${f.unit || '—'}</span></span>
+        <span class="badge ${f.status === 'Resolved' ? 'b-green' : 'b-amber'}">${f.status}</span>
+      </div>
+      <div style="font-size:13px;color:var(--mx-text);margin:8px 0">${f.message}</div>
+      ${f.photoDataUrl ? `<img src="${f.photoDataUrl}" style="max-width:160px;border-radius:8px;border:1px solid var(--mx-border);margin-bottom:8px">` : ''}
+      <div style="font-size:11px;color:var(--mx-muted);margin-bottom:8px">Submitted ${f.submitted || '—'}</div>
+      ${f.status !== 'Resolved' ? `<button class="btn btn-sm btn-success" onclick="resolveFeedback('${f.id}')"><i class="ti ti-check"></i> Mark resolved</button>` : ''}
+    </div>`).join('') : emptyState('ti-message-report', 'No feedback submitted yet', '');
+}
+function resolveFeedback(id) {
+  MX.set(s => { const f = s.feedback.find(x => x.id === id); if (f) f.status = 'Resolved'; });
+  MXUtil.toast('Feedback marked resolved', 'success');
+  renderFeedback(); renderNav();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BluGraph super admin view
+   ════════════════════════════════════════════════════════════════ */
+function renderBlueGraphDashboard() {
+  const s = MX.get();
+  const kpiBox = document.getElementById('bg-kpis');
+  if (!kpiBox) return;
+  const totalProps = s.platform.properties.length;
+  const totalUnits = s.platform.properties.reduce((sum, p) => sum + p.units, 0);
+  kpiBox.innerHTML = `
+    <div class="kpi"><div class="kpi-label">MA companies</div><div class="kpi-value">${s.platform.maCompanies.length}</div></div>
+    <div class="kpi"><div class="kpi-label">Total properties</div><div class="kpi-value">${totalProps}</div></div>
+    <div class="kpi"><div class="kpi-label">Total units managed</div><div class="kpi-value">${totalUnits.toLocaleString()}</div></div>
+    <div class="kpi"><div class="kpi-label">Active MAs</div><div class="kpi-value">${s.platform.maCompanies.filter(m => m.status === 'Active').length}</div></div>
+  `;
+  const listBox = document.getElementById('bg-ma-list');
+  listBox.innerHTML = s.platform.maCompanies.map(ma => {
+    const props = s.platform.properties.filter(p => ma.propertyIds.includes(p.id));
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="justify-content:space-between">
+        <span>${ma.logoDataUrl ? `<img src="${ma.logoDataUrl}" style="width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-right:6px">` : '<i class="ti ti-building"></i>'} ${ma.name}</span>
+        <span class="badge ${ma.status === 'Active' ? 'b-green' : 'b-gray'}">${ma.status}</span>
+      </div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Contact</span><span>${ma.contactEmail}</span></div>
+      <div class="stat-row"><span style="color:var(--mx-secondary)">Properties</span><span>${props.length}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">
+        ${['residents','operations','governance','finance'].map(k => `<span class="badge ${ma.modulesEnabled[k] ? 'b-teal' : 'b-gray'}" style="cursor:pointer" onclick="toggleMaModule('${ma.id}','${k}')">${k} ${ma.modulesEnabled[k] ? 'ON' : 'OFF'}</span>`).join('')}
+      </div>
+      <button class="btn btn-sm" onclick="viewMaCompanyProperties('${ma.id}')"><i class="ti ti-building-community"></i> View properties</button>
+    </div>`;
+  }).join('');
+}
+function toggleMaModule(maId, key) {
+  MX.set(s => {
+    const ma = s.platform.maCompanies.find(m => m.id === maId);
+    if (ma) ma.modulesEnabled[key] = !ma.modulesEnabled[key];
+  });
+  MXUtil.toast('Managing Agent Module access updated', 'success');
+  renderBlueGraphDashboard();
+}
+function viewMaCompanyProperties(maId) {
+  const s = MX.get();
+  const ma = s.platform.maCompanies.find(m => m.id === maId);
+  const props = s.platform.properties.filter(p => ma.propertyIds.includes(p.id));
+  const detail = document.getElementById('bg-ma-detail');
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="card-title"><i class="ti ti-building-community"></i> Properties under ${ma.name}</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Property</th><th>Address</th><th>Units</th><th>Status</th></tr></thead>
+      <tbody>${props.map(p => `<tr><td>${p.name}</td><td>${p.address}</td><td>${p.units}</td><td><span class="badge b-green">${p.status}</span></td></tr>`).join('')}</tbody>
+    </table></div>
+  `;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MA company view — settings + module defaults + property list
+   ════════════════════════════════════════════════════════════════ */
+function renderMaCompanyDashboard() {
+  const s = MX.get();
+  const ma = s.platform.maCompanies.find(m => m.id === s.platform.currentMACompanyId);
+  if (!ma) return;
+  document.getElementById('ma-name-input').value = ma.name;
+  document.getElementById('ma-email-input').value = ma.contactEmail;
+  document.getElementById('ma-logo-preview').innerHTML = ma.logoDataUrl
+    ? `<img src="${ma.logoDataUrl}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--mx-border)">`
+    : `<div style="font-size:11px;color:var(--mx-muted)">No logo uploaded yet</div>`;
+  const toggleBox = document.getElementById('ma-modules-toggles');
+  toggleBox.innerHTML = ['residents','operations','governance','finance'].map(k => `
+    <div class="stat-row">
+      <span style="text-transform:capitalize">${k}</span>
+      <button class="btn btn-sm ${ma.modulesEnabled[k] ? 'btn-success' : ''}" onclick="toggleMaModule('${ma.id}','${k}'); renderMaCompanyDashboard();">${ma.modulesEnabled[k] ? 'Enabled' : 'Disabled'}</button>
+    </div>`).join('');
+  const props = s.platform.properties.filter(p => ma.propertyIds.includes(p.id));
+  document.getElementById('ma-properties-tbody').innerHTML = props.map(p => `
+    <tr><td>${p.name}</td><td>${p.address}</td><td>${p.units}</td><td><span class="badge b-green">${p.status}</span></td></tr>
+  `).join('');
+}
+function saveMaCompanyDetails() {
+  const name = document.getElementById('ma-name-input').value.trim();
+  const email = document.getElementById('ma-email-input').value.trim();
+  if (!MXUtil.validRequired(name)) { MXUtil.toast('Company name required', 'error'); return; }
+  MX.set(s => {
+    const ma = s.platform.maCompanies.find(m => m.id === s.platform.currentMACompanyId);
+    if (ma) { ma.name = name; ma.contactEmail = email; }
+  });
+  MXUtil.toast('Company details saved', 'success');
+  renderMaCompanyDashboard();
+}
+function handleMaLogoUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { MXUtil.toast('Please upload an image file', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    MX.set(s => {
+      const ma = s.platform.maCompanies.find(m => m.id === s.platform.currentMACompanyId);
+      if (ma) ma.logoDataUrl = reader.result;
+    });
+    renderMaCompanyDashboard();
+    MXUtil.toast('Company logo uploaded', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Property settings (within Settings page)
+   ════════════════════════════════════════════════════════════════ */
+function renderPropertySettings() {
+  const s = MX.get();
+  const prop = s.platform.properties.find(p => p.id === s.platform.currentPropertyId);
+  if (!prop) return;
+  document.getElementById('prop-name-input').value = prop.name;
+  document.getElementById('prop-address-input').value = prop.address;
+  document.getElementById('prop-units-input').value = prop.units;
+  document.getElementById('prop-logo-preview').innerHTML = prop.logoDataUrl
+    ? `<img src="${prop.logoDataUrl}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--mx-border)">`
+    : `<div style="font-size:11px;color:var(--mx-muted)">No logo uploaded yet</div>`;
+}
+function savePropertyDetails() {
+  const name = document.getElementById('prop-name-input').value.trim();
+  const address = document.getElementById('prop-address-input').value.trim();
+  const units = Number(document.getElementById('prop-units-input').value) || 0;
+  if (!MXUtil.validRequired(name)) { MXUtil.toast('Property name required', 'error'); return; }
+  MX.set(s => {
+    const prop = s.platform.properties.find(p => p.id === s.platform.currentPropertyId);
+    if (prop) { prop.name = name; prop.address = address; prop.units = units; }
+  });
+  MXUtil.toast('Property details saved', 'success');
+  renderPropertySettings();
+  renderPropertySelectorLabel();
+}
+function handlePropLogoUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { MXUtil.toast('Please upload an image file', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    MX.set(s => {
+      const prop = s.platform.properties.find(p => p.id === s.platform.currentPropertyId);
+      if (prop) prop.logoDataUrl = reader.result;
+    });
+    renderPropertySettings();
+    MXUtil.toast('Property logo uploaded', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ════════════════════════════════════════════════════════════════
    Page render dispatcher — runs whenever a page becomes active,
    so it always reflects current store state.
    ════════════════════════════════════════════════════════════════ */
@@ -2668,24 +3189,30 @@ function renderPage(id) {
   if (id === 'tenants') { filterTenants(); renderPendingTenants(); }
   if (id === 'vehicles') renderVehiclesTable();
   if (id === 'access') { renderGuestsList(); renderExpectedVisitors(); renderAccessLogTable(); renderVehiclesTable(); }
+  if (id === 'security') renderSecurityDashboard();
   if (id === 'facilities') renderFacilityCalendar();
   if (id === 'fees') renderFeesPage();
   if (id === 'payments') renderPaymentsPage();
   if (id === 'maintenance') renderMaintenanceKanban();
+  if (id === 'renovations') renderRenovations();
   if (id === 'announcements') renderAnnouncements();
   if (id === 'documents') renderDocuments();
   if (id === 'polls') renderPolls();
   if (id === 'parcels') renderParcels();
   if (id === 'vendors') renderVendors();
+  if (id === 'feedback') renderFeedback();
   if (id === 'governance') renderGovernance();
   if (id === 'minutes') renderMinutes();
   if (id === 'quotations') renderQuotations();
   if (id === 'council') renderCouncil();
-  if (id === 'settings') renderSettingsPage();
+  if (id === 'settings') { renderSettingsPage(); renderPropertySettings(); }
+  if (id === 'bg-dashboard') renderBlueGraphDashboard();
+  if (id === 'ma-dashboard') renderMaCompanyDashboard();
 }
 function renderAll() {
   renderNav();
   renderPage(cur);
+  renderPropertySelectorLabel();
 }
 renderAll();
 

@@ -165,6 +165,35 @@
         uploadedQrDataUrl: null,
         uploadedQrName: null,
       },
+      platform: {
+        maCompanies: [
+          { id: 'ma1', name: 'Frontline Property Management', logoDataUrl: null, contactEmail: 'admin@frontline-pm.sg', status: 'Active',
+            modulesEnabled: { residents: true, operations: true, governance: true, finance: true },
+            propertyIds: ['prop-riviera', 'prop-b', 'prop-c'] },
+          { id: 'ma2', name: 'Harbourfront Estate Management', logoDataUrl: null, contactEmail: 'contact@harbourfront-em.sg', status: 'Active',
+            modulesEnabled: { residents: true, operations: true, governance: false, finance: true },
+            propertyIds: ['prop-d'] },
+          { id: 'ma3', name: 'Greenview Facilities Pte Ltd', logoDataUrl: null, contactEmail: 'hello@greenview-fm.sg', status: 'Active',
+            modulesEnabled: { residents: true, operations: false, governance: false, finance: false },
+            propertyIds: ['prop-e'] },
+        ],
+        properties: [
+          { id: 'prop-riviera', maCompanyId: 'ma1', name: 'Riviera Gardens', address: 'Bishan, SG', units: 312, logoDataUrl: null, status: 'Active' },
+          { id: 'prop-b', maCompanyId: 'ma1', name: 'Marina Breeze Residences', address: 'Marina Bay, SG', units: 188, logoDataUrl: null, status: 'Active' },
+          { id: 'prop-c', maCompanyId: 'ma1', name: 'Orchard Heights', address: 'Orchard, SG', units: 96, logoDataUrl: null, status: 'Active' },
+          { id: 'prop-d', maCompanyId: 'ma2', name: 'Harbour Vista', address: 'Telok Blangah, SG', units: 240, logoDataUrl: null, status: 'Active' },
+          { id: 'prop-e', maCompanyId: 'ma3', name: 'Greenview Park', address: 'Yishun, SG', units: 150, logoDataUrl: null, status: 'Active' },
+        ],
+        currentMACompanyId: 'ma1',
+        currentPropertyId: 'prop-riviera',
+      },
+      contractorSchedule: [
+        { id: 'cs1', vendorName: 'Otis Lift Maintenance', purpose: 'Monthly lift servicing', date: '2025-06-25', window: '9:00am–12:00pm', status: 'Confirmed' },
+        { id: 'cs2', vendorName: 'CleanCo Pte Ltd', purpose: 'Common area deep clean', date: '2025-06-26', window: '8:00am–5:00pm', status: 'Confirmed' },
+        { id: 'cs3', vendorName: 'GreenScape Landscaping', purpose: 'Garden trimming & pest spray', date: '2025-06-27', window: '7:00am–11:00am', status: 'Pending' },
+      ],
+      renovationRequests: [],
+      feedback: [],
     };
   }
 

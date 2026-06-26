@@ -195,9 +195,40 @@
     if (next && next.classList && next.classList.contains('mx-field-err')) next.remove();
   }
 
+  /* ---------- Print helper ----------
+     Opens an isolated print window styled black-on-white (independent of the app's
+     dark theme) containing just a title and given HTML, then triggers print(). */
+  function printRecord(title, html) {
+    const win = window.open('', '_blank', 'width=800,height=900');
+    if (!win) { toast('Could not open print window — check pop-up blocker', 'error'); return; }
+    win.document.write(`<!DOCTYPE html><html><head><title>${title}</title>
+      <meta charset="UTF-8">
+      <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; padding: 32px; font-size: 13px; line-height: 1.5; }
+        h1 { font-size: 18px; margin: 0 0 4px; }
+        .print-meta { font-size: 11px; color: #555; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 12.5px; }
+        th { background: #f0f0f0; }
+        .pr-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #ddd; }
+        .pr-label { color: #555; }
+        .pr-badge { display: inline-block; padding: 2px 8px; border: 1px solid #999; border-radius: 10px; font-size: 11px; }
+        @media print { body { padding: 12px; } }
+      </style>
+      </head><body>
+      <h1>${title}</h1>
+      <div class="print-meta">ManAgeX — printed ${new Date().toLocaleString('en-SG')}</div>
+      ${html}
+      </body></html>`);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 250);
+  }
+
   global.MXUtil = {
     toast, renderQR, buildPayNowPayload, exportCSV,
     validSGMobile, validPlate, validRequired,
-    showFieldError, clearFieldError,
+    showFieldError, clearFieldError, printRecord,
   };
 })(window);

@@ -190,6 +190,12 @@ body {
         <div class="qa" onclick="switchView('book')"><div class="qa-icon qa-blue"><i class="ti ti-calendar-plus" aria-hidden="true"></i></div><div class="qa-label">Book facility</div></div>
         <div class="qa" onclick="switchView('vehicles')"><div class="qa-icon qa-amber"><i class="ti ti-car" aria-hidden="true"></i></div><div class="qa-label">My vehicles</div></div>
       </div>
+      <div class="quick-actions" style="padding-top:0">
+        <div class="qa" onclick="switchView('renovation')"><div class="qa-icon qa-purple"><i class="ti ti-hammer" aria-hidden="true"></i></div><div class="qa-label">Renovation request</div></div>
+        <div class="qa" onclick="switchView('feedback')"><div class="qa-icon qa-red"><i class="ti ti-message-report" aria-hidden="true"></i></div><div class="qa-label">Feedback</div></div>
+        <div class="qa" onclick="switchView('services')"><div class="qa-icon qa-blue"><i class="ti ti-phone" aria-hidden="true"></i></div><div class="qa-label">Services info</div></div>
+        <div class="qa" onclick="switchView('updates')"><div class="qa-icon qa-green"><i class="ti ti-cloud" aria-hidden="true"></i></div><div class="qa-label">Updates</div></div>
+      </div>
 
       <div class="section">
         <div class="section-label">Management fee</div>
@@ -347,6 +353,112 @@ body {
       </div>
     </div>
 
+    <!-- RENOVATION REQUEST -->
+    <div class="view" id="view-renovation">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Renovation request</div>
+      </div>
+      <div class="section">
+        <div class="card">
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Unit</div>
+          <input class="inp" id="rn-unit" disabled>
+          <input class="inp" id="rn-desc" placeholder="Work description" aria-label="Work description">
+          <input class="inp" id="rn-contractor" placeholder="Contractor name" aria-label="Contractor name">
+          <input class="inp" id="rn-contractor-contact" placeholder="Contractor contact" aria-label="Contractor contact">
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Proposed start date</div>
+          <input class="inp" id="rn-start" type="date" aria-label="Start date">
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Proposed end date</div>
+          <input class="inp" id="rn-end" type="date" aria-label="End date">
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Supporting document (plan / permit)</div>
+          <input class="inp" id="rn-doc" type="file" accept="image/*,.pdf" aria-label="Supporting document">
+          <button class="pay-btn" onclick="submitRenovationRequest()"><i class="ti ti-send" aria-hidden="true"></i> Submit request</button>
+        </div>
+        <div style="margin-top:14px">
+          <div class="section-label">My requests</div>
+          <div class="card" id="rn-my-requests"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="view" id="view-feedback">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Feedback & complaints</div>
+      </div>
+      <div class="section">
+        <div class="card">
+          <select class="inp" id="fb-category" aria-label="Category">
+            <option>Cleanliness</option><option>Noise</option><option>Security</option><option>Facilities</option><option>Staff conduct</option><option>Other</option>
+          </select>
+          <textarea class="inp" id="fb-message" rows="4" placeholder="Describe your feedback or complaint" style="resize:vertical" aria-label="Message"></textarea>
+          <div style="font-size:11px;color:var(--mx-secondary);margin-bottom:5px">Photo (optional)</div>
+          <input class="inp" id="fb-photo" type="file" accept="image/*" aria-label="Photo">
+          <button class="pay-btn" onclick="submitFeedback()"><i class="ti ti-send" aria-hidden="true"></i> Submit feedback</button>
+        </div>
+        <div style="margin-top:14px">
+          <div class="section-label">My submissions</div>
+          <div class="card" id="fb-my-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVICES INFO -->
+    <div class="view" id="view-services">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Services information</div>
+      </div>
+      <div class="section">
+        <div class="section-label">MA office</div>
+        <div class="card">
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Office hours</div><div>Mon–Fri 9am–6pm, Sat 9am–1pm</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Phone</div><div>+65 6555 0188</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Email</div><div>ma-office@frontline-pm.sg</div></div>
+        </div>
+        <div class="section-label" style="margin-top:16px">Emergency contacts</div>
+        <div class="card">
+          <div class="access-item"><div style="color:var(--mx-secondary);width:110px;flex-shrink:0;font-size:12px">Police / Fire / Ambulance</div><div>999 / 995</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:110px;flex-shrink:0;font-size:12px">Estate security (24h)</div><div>+65 6555 0199</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:110px;flex-shrink:0;font-size:12px">After-hours duty manager</div><div>+65 9123 0044</div></div>
+        </div>
+        <div class="section-label" style="margin-top:16px">Essential service contractors</div>
+        <div class="card">
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Lift breakdown</div><div>Otis Lift Maintenance — +65 6555 1234</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Electrical fault</div><div>BrightSpark Electrical — +65 6555 9876</div></div>
+          <div class="access-item"><div style="color:var(--mx-secondary);width:90px;flex-shrink:0;font-size:12px">Plumbing</div><div>On-call via MA office</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATES -->
+    <div class="view" id="view-updates">
+      <div class="app-header" style="padding-bottom:14px">
+        <div class="header-row">
+          <button onclick="switchView('home')" style="background:none;border:none;color:var(--mx-teal);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-chevron-left" aria-hidden="true"></i> Back</button>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:var(--mx-white);margin-top:6px">Community updates</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Live weather (data.gov.sg)</div>
+        <div class="card" id="updates-weather-card"></div>
+      </div>
+      <div class="section">
+        <div class="section-label">Municipal announcements <span style="color:var(--mx-muted);font-weight:400">(illustrative)</span></div>
+        <div class="card">
+          <div class="access-item"><div class="access-info"><div class="access-name">Town Council — chargeable bulky item collection</div><div class="access-sub">Book via OneService app, $30 flat fee</div></div></div>
+          <div class="access-item"><div class="access-info"><div class="access-name">NEA dengue cluster advisory</div><div class="access-sub">Check nearby clusters at nea.gov.sg before outdoor activities</div></div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Bottom Nav -->
@@ -383,7 +495,7 @@ body {
 <script>
 const VIEW_NAV_MAP = {
   home:'bn-home', guests:'bn-guests', book:'bn-book', payment:'bn-payment', profile:'bn-profile',
-  vehicles: null
+  vehicles: null, renovation: null, feedback: null, services: null, updates: null
 };
 
 const RESIDENT_UNIT = '#02-14';
@@ -775,6 +887,127 @@ function renderProfileView() {
 }
 
 /* ════════════════════════════════════════════════════════════════
+   RENOVATION REQUEST
+   ════════════════════════════════════════════════════════════════ */
+function renovationStatusBadgeR(status) {
+  const map = { 'Pending review': 'b-amber', 'Approved': 'b-green', 'Rejected': 'b-red' };
+  return `<span class="badge ${map[status] || 'b-gray'}">${status}</span>`;
+}
+function renderRenovationView() {
+  document.getElementById('rn-unit').value = RESIDENT_UNIT;
+  const s = MX.get();
+  const mine = s.renovationRequests.filter(r => r.unit === RESIDENT_UNIT);
+  document.getElementById('rn-my-requests').innerHTML = mine.length ? mine.slice().reverse().map(r => `
+    <div class="access-item">
+      <div class="access-info"><div class="access-name">${r.workDescription}</div><div class="access-sub">${r.contractorName} · ${r.startDate} – ${r.endDate}</div></div>
+      ${renovationStatusBadgeR(r.status)}
+    </div>`).join('') : emptyStateHtml('ti-hammer', 'No renovation requests submitted', '');
+}
+function submitRenovationRequest() {
+  const descEl = document.getElementById('rn-desc');
+  const contractorEl = document.getElementById('rn-contractor');
+  const startEl = document.getElementById('rn-start');
+  const endEl = document.getElementById('rn-end');
+  MXUtil.clearFieldError(descEl); MXUtil.clearFieldError(contractorEl); MXUtil.clearFieldError(startEl); MXUtil.clearFieldError(endEl);
+  if (!MXUtil.validRequired(descEl.value)) { MXUtil.showFieldError(descEl, 'Work description required'); return; }
+  if (!MXUtil.validRequired(contractorEl.value)) { MXUtil.showFieldError(contractorEl, 'Contractor name required'); return; }
+  if (!startEl.value) { MXUtil.showFieldError(startEl, 'Start date required'); return; }
+  if (!endEl.value) { MXUtil.showFieldError(endEl, 'End date required'); return; }
+  if (new Date(endEl.value) < new Date(startEl.value)) { MXUtil.showFieldError(endEl, 'Must be on/after start date'); return; }
+
+  const docFile = document.getElementById('rn-doc').files[0];
+  const finish = (docDataUrl, docName) => {
+    MX.set(s => {
+      s.renovationRequests.push({
+        id: MX.uid('rn'), unit: RESIDENT_UNIT, workDescription: descEl.value, contractorName: contractorEl.value,
+        contractorContact: document.getElementById('rn-contractor-contact').value, startDate: startEl.value, endDate: endEl.value,
+        docDataUrl: docDataUrl || null, docName: docName || null, status: 'Pending review',
+        submitted: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
+      });
+    });
+    descEl.value = ''; contractorEl.value = ''; document.getElementById('rn-contractor-contact').value = ''; startEl.value = ''; endEl.value = '';
+    document.getElementById('rn-doc').value = '';
+    MXUtil.toast('Renovation request submitted for review', 'success');
+    renderRenovationView();
+  };
+  if (docFile) {
+    const reader = new FileReader();
+    reader.onload = () => finish(reader.result, docFile.name);
+    reader.readAsDataURL(docFile);
+  } else {
+    finish(null, null);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FEEDBACK
+   ════════════════════════════════════════════════════════════════ */
+function renderFeedbackView() {
+  const s = MX.get();
+  const mine = s.feedback.filter(f => f.unit === RESIDENT_UNIT);
+  document.getElementById('fb-my-list').innerHTML = mine.length ? mine.slice().reverse().map(f => `
+    <div class="access-item">
+      <div class="access-info"><div class="access-name">${f.category}</div><div class="access-sub">${f.message}</div></div>
+      <span class="badge ${f.status === 'Resolved' ? 'b-green' : 'b-amber'}">${f.status}</span>
+    </div>`).join('') : emptyStateHtml('ti-message-report', 'No feedback submitted yet', '');
+}
+function submitFeedback() {
+  const messageEl = document.getElementById('fb-message');
+  MXUtil.clearFieldError(messageEl);
+  if (!MXUtil.validRequired(messageEl.value)) { MXUtil.showFieldError(messageEl, 'Please describe your feedback'); return; }
+  const photoFile = document.getElementById('fb-photo').files[0];
+  const finish = (photoDataUrl) => {
+    MX.set(s => {
+      s.feedback.push({
+        id: MX.uid('fb'), unit: RESIDENT_UNIT, category: document.getElementById('fb-category').value, message: messageEl.value,
+        photoDataUrl: photoDataUrl || null, status: 'Open',
+        submitted: new Date().toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }),
+      });
+    });
+    messageEl.value = ''; document.getElementById('fb-photo').value = '';
+    MXUtil.toast('Feedback submitted to MA office', 'success');
+    renderFeedbackView();
+  };
+  if (photoFile) {
+    const reader = new FileReader();
+    reader.onload = () => finish(reader.result);
+    reader.readAsDataURL(photoFile);
+  } else {
+    finish(null);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   COMMUNITY UPDATES — real live weather (data.gov.sg), rest illustrative
+   ════════════════════════════════════════════════════════════════ */
+function renderUpdatesView() {
+  const card = document.getElementById('updates-weather-card');
+  card.innerHTML = `<div style="text-align:center;padding:10px;color:var(--mx-secondary);font-size:12px">Loading live forecast…</div>`;
+  fetch('https://api.data.gov.sg/v1/environment/2-hour-weather-forecast')
+    .then(res => { if (!res.ok) throw new Error('bad response'); return res.json(); })
+    .then(data => {
+      const area = (data.area_metadata || []).find(a => a.name === 'Bishan') || (data.area_metadata || [])[0];
+      const forecastSet = (data.items || [])[0];
+      const forecast = forecastSet ? (forecastSet.forecasts || []).find(f => f.area === (area && area.name)) : null;
+      const updatedAt = forecastSet ? new Date(forecastSet.update_timestamp || forecastSet.timestamp).toLocaleString('en-SG', { hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' }) : '';
+      card.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:var(--r-sm);background:var(--mx-blue-dim);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--mx-blue)"><i class="ti ti-cloud" aria-hidden="true"></i></div>
+          <div><div style="font-weight:600;font-size:15px;color:var(--mx-white)">${forecast ? forecast.forecast : 'Forecast unavailable'}</div><div style="font-size:11px;color:var(--mx-secondary)">${area ? area.name : 'Singapore'} · 2-hour forecast · updated ${updatedAt}</div></div>
+        </div>
+        <div style="font-size:10px;color:var(--mx-muted);margin-top:10px">Live data from api.data.gov.sg — real public API, not simulated</div>`;
+    })
+    .catch(() => {
+      card.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:var(--r-sm);background:var(--mx-panel);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--mx-muted)"><i class="ti ti-cloud-off" aria-hidden="true"></i></div>
+          <div><div style="font-weight:600;font-size:14px;color:var(--mx-white)">Partly cloudy (placeholder)</div><div style="font-size:11px;color:var(--mx-secondary)">Live weather unavailable right now — showing static placeholder</div></div>
+        </div>
+        <div style="font-size:10px;color:var(--mx-muted);margin-top:10px">This fallback content is illustrative — the live fetch to api.data.gov.sg failed (network/CORS/rate limit)</div>`;
+    });
+}
+
+/* ════════════════════════════════════════════════════════════════
    View dispatcher
    ════════════════════════════════════════════════════════════════ */
 function renderView(id) {
@@ -784,6 +1017,10 @@ function renderView(id) {
   if (id === 'book') renderBookView();
   if (id === 'vehicles') renderVehiclesView();
   if (id === 'profile') renderProfileView();
+  if (id === 'renovation') renderRenovationView();
+  if (id === 'feedback') renderFeedbackView();
+  if (id === 'services') { /* static content, no render needed */ }
+  if (id === 'updates') renderUpdatesView();
 }
 
 renderView('home');
