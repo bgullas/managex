@@ -43,27 +43,7 @@ ManAgeX is a multi-tenant property management platform built for Singapore manag
 
 ## Module breakdown
 
-### MA Portal (index.html)
-| Module | Purpose |
-|--------|---------|
-| Dashboard | Live KPIs, access events, pending approvals |
-| Owners & Tenants | Unit registry, sub-tenant relationships, approval queue |
-| Management Fees | 12-month payment calendar per unit, collection reports |
-| Access Control | Guest management, walk-in desk, ANPR log, security override |
-| Facilities | Booking calendar (day/week/month), occupancy analytics |
-| Vehicle Registry | Log card upload, approval workflow, ANPR status |
-| Payments | PayNow QR generation, payment history |
-| Reports | Collection, access, utilisation, overdue accounts |
-
-### Resident App (resident-app.html)
-| Screen | Purpose |
-|--------|---------|
-| Home | Greeting, fee status, active guests, recent activity |
-| Guest access | Invite guests, issue QR pass, vehicle pass (ANPR) |
-| Payments | PayNow QR, fee history |
-| Book facility | Slot availability, upcoming bookings |
-| Vehicles | Registered plates, add vehicle (log card upload) |
-| Profile | Household residents, sub-tenants, account details |
+This section originally listed the 8 MA-portal pages and 6 resident screens that existed at launch. The app has since grown substantially (BluGraph/MA/Property hierarchy, Security module, MCST governance tools, renovation workflow, resident feedback/updates, print support). **For the complete, current, page-by-page feature inventory, see [`FEATURES.md`](FEATURES.md)** — this file stays focused on system design rather than duplicating a list that will drift out of date again.
 
 ## Data model (key entities)
 

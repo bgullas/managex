@@ -15,7 +15,9 @@ The name **ManAgeX** reflects the platform's core purpose: **Managing Access** a
 | **MA Portal** | `index.html` | Managing agent office, security team |
 | **Resident App** | `resident-app.html` | Unit owners, tenants, sub-tenants |
 
-> Hosted on GitHub Pages: `https://{username}.github.io/managex/`
+> Hosted on GitHub Pages: **https://bgullas.github.io/managex/**
+
+📋 **For the full, up-to-date feature inventory (including what's genuinely real vs. simulated), see [`docs/FEATURES.md`](docs/FEATURES.md).** The lists below cover the original core modules; FEATURES.md also covers the BluGraph/MA/Property hierarchy, Security module, MCST governance tools, renovation workflow, PayNow sandbox payments, and resident feedback/updates added since.
 
 ---
 
@@ -112,15 +114,20 @@ Tested with: Hikvision DS-2CD2T47G2-L, Dahua IPC-HFW3849S-AS-PV
 
 ```
 managex/
-├── index.html              ← MA portal
-├── resident-app.html       ← Resident mobile app
+├── index.html               ← MA portal (full admin app + BluGraph/MA hierarchy views)
+├── resident-app.html        ← Resident mobile app
 ├── README.md
 ├── docs/
-│   ├── architecture.md     ← System design and data model
-│   └── api-anpr.md         ← ANPR REST API specification
-└── assets/
-    └── import-template.txt ← Excel bulk import column guide
+│   ├── FEATURES.md          ← Full feature inventory — what's real vs. simulated
+│   ├── architecture.md      ← System design, data model, production roadmap
+│   └── api-anpr.md          ← ANPR REST API specification
+├── assets/                  ← Shared client JS (app-state, app-utils, paynow-sandbox) + import template
+├── server/                  ← PayNow sandbox backend for local dev (Node, SSE)
+├── netlify/functions/       ← Same PayNow sandbox backend, deployed (Netlify Functions + Blobs)
+└── shared/                  ← Bank-simulation/SGQR/HMAC/CORS logic shared by both backend copies
 ```
+
+See [`docs/FEATURES.md`](docs/FEATURES.md) for what each module actually does.
 
 ---
 
